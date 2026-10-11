@@ -420,7 +420,6 @@ function analyse(p) {
   const phaseStarts = [...new Set([
     ...Array.from({ length: Math.max(1, Math.ceil(maxGame / every)) }, (_, i) => i * every + 1),
     ...p.bans.map((b) => phaseStart(b.fromGame)),
-    ...(n > 0 && n % every === 0 ? [n + 1] : []),
   ])].sort((a, b) => a - b);
   const phases = phaseStarts.map((from) => {
     const to = from + every - 1;
