@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Best of 99</title>
+<meta name="description" content="Live score, bans, decks and every game of a Clash Royale best-of-99 series.">
+<meta name="theme-color" content="#08090d">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%227%22 fill=%22%2308090d%22/%3E%3Crect x=%226%22 y=%2214%22 width=%229%22 height=%224%22 rx=%222%22 fill=%22%23f6b73c%22/%3E%3Crect x=%2217%22 y=%2214%22 width=%229%22 height=%224%22 rx=%222%22 fill=%22%235b93ff%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+/* One column on phones (chat viewers), two on desktop: scoreboard, bans, highlights, momentum, decks, every game. */
+:root {
+  --bg: #08090d; --panel: #10131a; --raise: #161a23; --line: #1f2430; --line2: #2b3140;
+  --text: #f3f4f7; --mute: #8b91a1; --dim: #555b6b;
+  --a: #f6b73c; --b: #5b93ff; --ban: #ff5c5c;
+  --display: 'Big Shoulders Display', Impact, 'Arial Narrow', sans-serif;
+  --body: Geist, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'Geist Mono', ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--body); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: max(20px, env(safe-area-inset-top)) 16px 56px; display: flex; flex-direction: column; gap: 16px; }
+.ca { color: var(--a); } .cb { color: var(--b); }
+.label { font: 500 12px var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--mute); }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; min-width: 0; }
+.panel > header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 14px; }
+.panel h2 { font: 600 16px var(--body); margin: 0; }
+.panel header span { font: 500 12px var(--mono); color: var(--dim); }
+.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.pill { display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px; border: 1px solid var(--line2); border-radius: 999px; font: 500 12px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--mute); background: var(--panel); text-decoration: none; }
+.pill i { width: 7px; height: 7px; border-radius: 50%; background: var(--ban); }
+.pill.done i { background: var(--text); }
+.pill.mod { color: var(--text); border-color: var(--a); }
+.board { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 8px; padding: 22px 18px 18px; }
+.side { min-width: 0; }
+.side .nm { font: 900 clamp(26px, 7vw, 64px)/.9 var(--display); text-transform: uppercase; }
+.side.b { text-align: right; }
+.side small { display: block; font: 500 12px var(--mono); color: var(--mute); margin-top: 8px; }
+.score { font: 900 clamp(52px, 14vw, 136px)/.8 var(--display); font-variant-numeric: tabular-nums; display: flex; gap: clamp(10px, 2vw, 22px); align-items: center; }
+.score i { display: block; width: clamp(14px, 2.4vw, 26px); height: 7px; border-radius: 3px; background: var(--line2); }
+.race { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 18px 18px; }
+.race .bar { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.race .bar div { height: 100%; border-radius: 4px; transition: width .6s ease; }
+.race .rb .bar { transform: scaleX(-1); }
+.race p { margin: 8px 0 0; font: 500 12px var(--mono); color: var(--mute); }
+.race .rb p { text-align: right; }
+.status { margin: 0; padding: 12px 18px; border-top: 1px solid var(--line); font-size: 14px; color: var(--mute); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.status b { color: var(--text); font-weight: 600; }
+.grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+@media (min-width: 900px) { .grid { grid-template-columns: 1.25fr 1fr; } .span2 { grid-column: 1 / -1; } }
+.phases { display: grid; gap: 10px; }
+.phase { display: grid; grid-template-columns: 96px 1fr auto; gap: 12px; align-items: center; background: var(--raise); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; }
+.phase.next { opacity: .6; }
+.phase .rng { font: 500 12px var(--mono); color: var(--mute); }
+.phase .rng b { display: block; font: 700 18px var(--display); color: var(--text); letter-spacing: .02em; }
+.bans { display: flex; gap: 10px; flex-wrap: wrap; min-width: 0; }
+.ban { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--mute); min-width: 0; }
+.ban .img { position: relative; width: 36px; height: 44px; flex: none; }
+.ban .img img { width: 100%; height: 100%; object-fit: contain; filter: grayscale(.6); }
+.ban .img::after { content: ""; position: absolute; left: -2px; right: -2px; top: 50%; height: 3px; background: var(--ban); transform: rotate(-35deg); border-radius: 2px; }
+.ban b { display: block; color: var(--text); font-weight: 600; }
+.rec { font: 700 22px var(--display); text-align: right; white-space: nowrap; }
+.rec small { display: block; font: 500 11px var(--mono); color: var(--dim); }
+.note { font-size: 13px; color: var(--mute); margin: 12px 0 0; }
+.banedit { display: flex; gap: 6px; align-items: center; }
+.banedit input { width: 150px; max-width: 100%; font: 500 13px var(--body); color: var(--text); background: var(--bg); border: 1px solid var(--line2); border-radius: 8px; padding: 6px 8px; }
+.banedit button, button.more { font: 500 13px var(--body); color: var(--text); background: var(--raise); border: 1px solid var(--line2); border-radius: 8px; padding: 6px 10px; cursor: pointer; }
+.banedit button:disabled { opacity: .5; cursor: default; }
+.banedit .err { color: var(--ban); font-size: 12px; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--a); outline-offset: 2px; }
+.chart { position: relative; height: 200px; }
+.chart svg { display: block; width: 100%; height: 100%; }
+.chart .bl { position: absolute; top: 2px; font: 500 11px var(--mono); color: var(--ban); padding-left: 6px; white-space: nowrap; }
+@media (max-width: 520px) { .chart { height: 140px; } }
+.cells { display: grid; grid-template-columns: repeat(auto-fill, minmax(18px, 1fr)); gap: 4px; margin-top: 12px; }
+.cell { aspect-ratio: 1; border-radius: 4px; background: var(--line); }
+.cell.a { background: var(--a); } .cell.b { background: var(--b); }
+.legend { display: flex; justify-content: space-between; margin-top: 10px; font: 500 12px var(--mono); color: var(--mute); gap: 8px; }
+.hl { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.hl > div { background: var(--raise); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; min-width: 0; }
+.hl .v { font: 900 40px/1 var(--display); font-variant-numeric: tabular-nums; }
+.hl .v small { font-size: 20px; color: var(--mute); margin-left: 3px; }
+.hl p { margin: 6px 0 0; font-size: 13px; color: var(--mute); }
+.hl p b { color: var(--text); font-weight: 600; }
+.decks, .log, .list { display: flex; flex-direction: column; gap: 8px; }
+.deck { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; background: var(--raise); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; }
+.cards8 { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; min-width: 0; }
+.cards8 img { width: 100%; aspect-ratio: 5 / 6; object-fit: contain; }
+.deck .who { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font: 500 13px var(--mono); white-space: nowrap; }
+.deck .who .n { color: var(--dim); }
+button.more { margin-top: 10px; width: 100%; padding: 10px; font-size: 14px; border-radius: 12px; }
+.log { gap: 6px; }
+.g { display: grid; grid-template-columns: 44px 1fr 64px 1fr; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 12px; background: var(--raise); border: 1px solid var(--line); }
+.g .n { font: 700 20px var(--display); color: var(--mute); }
+.g .n small { display: block; font: 500 10px var(--mono); color: var(--dim); }
+.g .sc { text-align: center; font: 700 24px var(--display); font-variant-numeric: tabular-nums; }
+.g .cards8 { opacity: .45; gap: 2px; }
+.g.wa .ma, .g.wb .mb { opacity: 1; }
+.g.wa .sc .x { color: var(--a); } .g.wb .sc .y { color: var(--b); }
+.g .flag { grid-column: 2 / -1; font-size: 12px; color: var(--mute); margin-top: -2px; }
+.g .flag b { color: var(--text); font-weight: 600; }
+.phasebreak { font: 500 11px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--ban); padding: 8px 2px 2px; }
+.list a { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 14px 16px; border-radius: 14px; background: var(--raise); border: 1px solid var(--line); color: var(--text); text-decoration: none; }
+.list a:hover { border-color: var(--line2); }
+.list .t { font: 700 24px var(--display); text-transform: uppercase; }
+.list small { font: 500 12px var(--mono); color: var(--mute); }
+.empty { color: var(--mute); padding: 24px 0; margin: 0; }
+footer { font: 400 12px var(--mono); color: var(--dim); text-align: center; margin-top: 8px; }
+@media (max-width: 520px) {
+  .g { grid-template-columns: 36px 1fr 52px 1fr; gap: 6px; padding: 8px; }
+  .phase { grid-template-columns: 76px 1fr auto; }
+}
+@media (prefers-reduced-motion: reduce) { .race .bar div { transition: none; } }
+</style>
+</head>
+<body>
+<main class="wrap" id="app"><p class="empty">Loading…</p></main>
+<datalist id="bo99-cards"></datalist>
+<script src="cards.js"></script>
+<script>
+const FN = 'https://rudopohqygznwhudyohf.supabase.co/functions/v1/bo99';
+const ASSETS = 'https://cdns3.royaleapi.com/static/img/cards/v9-f09d5c9d/';
+const KING_HP = 4824;
+const app = document.getElementById('app');
+const params = new URLSearchParams(location.search);
+const slug = params.get('s');
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const time = (iso) => new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+const day = (iso) => new Date(iso).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' });
+
+async function call(body) {
+  const res = await fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw Object.assign(new Error(data.error || res.statusText), { status: res.status });
+  return data;
+}
+
+// ---------- card images: official art first, RoyaleAPI's copy if that is missing ----------
+let ICONS = {};
+const SUFFIX = ['', '-ev1', '-hero'];
+function cardImg(name, level) {
+  const key = (window.BO99_CARDS || {})[name];
+  const tries = [ICONS[`${name}|${level}`], key && ASSETS + key + SUFFIX[Math.min(level, 2)] + '.png', ICONS[`${name}|0`], key && ASSETS + key + '.png'].filter(Boolean);
+  const uniq = [...new Set(tries)];
+  return `<img src="${esc(uniq[0] || '')}" data-next="${esc(uniq.slice(1).join(' '))}" alt="${esc(name)}" title="${esc(name)}" onerror="nextImg(this)">`;
+}
+window.nextImg = (img) => {
+  const rest = (img.dataset.next || '').split(' ').filter(Boolean);
+  if (!rest.length) { img.onerror = null; img.style.visibility = 'hidden'; return; }
+  img.dataset.next = rest.slice(1).join(' ');
+  img.src = rest[0];
+};
+
+// ---------- numbers ----------
+const deckKey = (cards) => cards.map((c) => c[0]).sort().join('|');
+function lowestStanding(s) {
+  const t = [...(s.princess || []), ...(s.king !== null && s.king < KING_HP ? [s.king] : [])].filter((v) => v > 0);
+  return t.length ? Math.min(...t) : null;
+}
+function analyse(p) {
+  const games = p.games.map((g, i) => {
+    const w = g.host.crowns > g.opp.crowns ? 'a' : 'b';
+    return { n: i + 1, t: g.t, a: g.host, b: g.opp, w, low: lowestStanding(w === 'a' ? g.host : g.opp), deckA: deckKey(g.host.cards), deckB: deckKey(g.opp.cards) };
+  });
+  const n = games.length, wins = [0, 0], diff = [0];
+  games.forEach((g) => { wins[g.w === 'a' ? 0 : 1]++; diff.push(wins[0] - wins[1]); });
+  const best = [0, 0]; let run = 0;
+  games.forEach((g, i) => { run = i && games[i - 1].w === g.w ? run + 1 : 1; const k = g.w === 'a' ? 0 : 1; best[k] = Math.max(best[k], run); });
+  let current = 0; for (let i = n - 1; i >= 0 && games[i].w === games[n - 1].w; i--) current++;
+  let leadChanges = 0, sign = 0;
+  diff.slice(1).forEach((d) => { const s = Math.sign(d); if (s && sign && s !== sign) leadChanges++; if (s) sign = s; });
+  const every = p.session.banEvery;
+  const blocks = Math.max(1, Math.ceil(n / every), ...p.bans.map((b) => Math.ceil(b.fromGame / every)));
+  const phases = [];
+  for (let i = 0; i < blocks + (n > 0 && n % every === 0 ? 1 : 0); i++) {
+    const from = i * every + 1, to = from + every - 1;
+    const inPhase = games.filter((g) => g.n >= from && g.n <= to);
+    phases.push({
+      from, to,
+      banA: p.bans.find((b) => b.fromGame === from && b.side === 'host')?.card ?? null,
+      banB: p.bans.find((b) => b.fromGame === from && b.side === 'opponent')?.card ?? null,
+      wins: [inPhase.filter((g) => g.w === 'a').length, inPhase.filter((g) => g.w === 'b').length],
+      played: inPhase.length, upcoming: inPhase.length === 0,
+    });
+  }
+  const decks = new Map();
+  games.forEach((g) => {
+    const seen = new Set();
+    [['a', g.a.cards, g.deckA], ['b', g.b.cards, g.deckB]].forEach(([side, cards, key]) => {
+      const d = decks.get(key) || { key, cards, games: 0, a: [0, 0], b: [0, 0] };
+      d[side][g.w === side ? 0 : 1]++;
+      if (!seen.has(key)) d.games++;
+      seen.add(key); decks.set(key, d);
+    });
+  });
+  const deckList = [...decks.values()].sort((x, y) => y.games - x.games || (y.a[0] + y.b[0]) - (x.a[0] + x.b[0]));
+  const clutch = games.filter((g) => g.low !== null).sort((x, y) => x.low - y.low)[0] || null;
+  const three = games.filter((g) => Math.max(g.a.crowns, g.b.crowns) === 3);
+  const leak = (k) => (n ? games.reduce((s, g) => s + (g[k].leaked || 0), 0) / n : 0);
+  return {
+    games, n, wins, diff, best, current, leader: games[n - 1]?.w ?? null, leadChanges, phases, decks: deckList, clutch,
+    oneNil: games.filter((g) => Math.max(g.a.crowns, g.b.crowns) === 1).length,
+    three: [three.filter((g) => g.w === 'a').length, three.filter((g) => g.w === 'b').length],
+    leaked: [leak('a'), leak('b')],
+  };
+}
+
+// ---------- series page ----------
+let payload = null, modToken = null, showAllDecks = false, showAllGames = false, timer = null;
+const modKey = (s) => `bo99-mod-${s}`;
+
+function render() {
+  const p = payload, s = p.session, a = analyse(p);
+  ICONS = p.icons || {};
+  const A = esc(s.host.name), B = esc(s.opponent.name);
+  const nameOf = (w) => `<b class="${w === 'a' ? 'ca' : 'cb'}">${w === 'a' ? A : B}</b>`;
+  const winner = a.wins[0] >= s.target ? 'a' : a.wins[1] >= s.target ? 'b' : null;
+  const d = a.wins[0] - a.wins[1];
+  const live = s.status === 'live';
+  document.title = `${s.host.name} vs ${s.opponent.name} · Best of ${s.target * 2 - 1}`;
+
+  const statusLeft = winner ? `${nameOf(winner)} wins the series` : d === 0 ? '<b>Level</b>' : `${nameOf(d > 0 ? 'a' : 'b')} leads by ${Math.abs(d)}`;
+  const statusRight = a.leader ? `${live && !winner ? `Game ${a.n + 1} next · ` : ''}${a.leader === 'a' ? A : B} won the last ${a.current}` : '';
+
+  const banCell = (ph, side) => {
+    const who = side === 'host' ? A : B;
+    const card = side === 'host' ? ph.banA : ph.banB;
+    if (modToken) {
+      return `<div class="ban"><div><b>${who}</b><form class="banedit" data-from="${ph.from}" data-side="${side}">
+        <input list="bo99-cards" value="${esc(card || '')}" data-current="${esc(card || '')}" placeholder="Card" aria-label="Card banned by ${who}">
+        <button type="submit">Save</button><span class="err" hidden></span></form></div></div>`;
+    }
+    if (!card) return `<div class="ban">${who}: ${ph.upcoming ? 'not set yet' : 'no ban'}</div>`;
+    return `<div class="ban"><div class="img">${cardImg(card, 0)}</div><div><b>${esc(card)}</b>banned by ${who}</div></div>`;
+  };
+
+  const W = 1000, H = 220, N = Math.max(a.n, 1), mx = Math.max(3, ...a.diff.map(Math.abs));
+  const X = (i) => (i * W) / N, Y = (v) => H / 2 - (v * (H / 2 - 14)) / mx;
+  let path = `M0,${Y(0)}`;
+  for (let i = 1; i <= a.n; i++) path += ` L${X(i)},${Y(a.diff[i - 1])} L${X(i)},${Y(a.diff[i])}`;
+  const area = `${path} L${X(a.n)},${Y(0)} Z`;
+  const started = a.phases.filter((ph) => !ph.upcoming);
+
+  const decks = (showAllDecks ? a.decks : a.decks.slice(0, 6)).map((dk) => `<div class="deck">
+    <div class="cards8">${dk.cards.map(([n, l]) => cardImg(n, l)).join('')}</div>
+    <div class="who">${dk.a[0] + dk.a[1] ? `<span class="ca">${A} ${dk.a[0]}-${dk.a[1]}</span>` : ''}${dk.b[0] + dk.b[1] ? `<span class="cb">${B} ${dk.b[0]}-${dk.b[1]}</span>` : ''}<span class="n">${dk.games} game${dk.games === 1 ? '' : 's'}</span></div>
+  </div>`).join('');
+
+  const log = [...a.games].reverse().slice(0, showAllGames ? a.n : 10).map((g) => {
+    const flags = [];
+    if (Math.max(g.a.crowns, g.b.crowns) === 3) flags.push(`${nameOf(g.w)} three-crowned`);
+    else if (g.low !== null && g.low < 300) flags.push(`${nameOf(g.w)} won with a tower on <b>${g.low} HP</b>`);
+    if (g.deckA === g.deckB) flags.push('mirror match');
+    const ph = a.phases.find((x) => x.from === g.n && x.from > 1);
+    return `<div class="g w${g.w}"><div class="n">${g.n}<small>${time(g.t)}</small></div>
+      <div class="cards8 ma">${g.a.cards.map(([n, l]) => cardImg(n, l)).join('')}</div>
+      <div class="sc"><span class="x">${g.a.crowns}</span>-<span class="y">${g.b.crowns}</span></div>
+      <div class="cards8 mb">${g.b.cards.map(([n, l]) => cardImg(n, l)).join('')}</div>
+      ${flags.length ? `<div class="flag">${flags.join(' · ')}</div>` : ''}</div>
+      ${ph ? `<div class="phasebreak">Bans for games ${ph.from}&ndash;${ph.to}: ${esc([ph.banA, ph.banB].filter(Boolean).join(', ') || 'none')}</div>` : ''}`;
+  }).join('');
+
+  app.innerHTML = `
+  <div class="top">
+    <a class="pill${live ? '' : ' done'}" href="./"><i></i>Best of ${s.target * 2 - 1} &middot; ${live ? 'live' : 'final'}</a>
+    ${modToken ? '<span class="pill mod">Mod mode</span>' : ''}
+    <span class="label">${day(s.startedAt)} &middot; last game ${time(s.lastGameAt || p.fetchedAt)}</span>
+  </div>
+  <section class="panel" style="padding:0">
+    <div class="board">
+      <div class="side"><div class="nm ca">${A}</div><small>#${esc(s.host.tag)}</small></div>
+      <div class="score" aria-live="polite"><span>${a.wins[0]}</span><i></i><span>${a.wins[1]}</span></div>
+      <div class="side b"><div class="nm cb">${B}</div><small>#${esc(s.opponent.tag)}</small></div>
+    </div>
+    <div class="race">
+      <div><div class="bar"><div style="background:var(--a);width:${(a.wins[0] / s.target) * 100}%"></div></div><p>${Math.max(0, s.target - a.wins[0])} wins to go</p></div>
+      <div class="rb"><div class="bar"><div style="background:var(--b);width:${(a.wins[1] / s.target) * 100}%"></div></div><p>${Math.max(0, s.target - a.wins[1])} wins to go</p></div>
+    </div>
+    <p class="status"><span>${statusLeft}</span><span>${statusRight}</span></p>
+  </section>
+  <div class="grid">
+    <section class="panel">
+      <header><h2>Bans</h2><span>new bans every ${s.banEvery} games</span></header>
+      <div class="phases">${a.phases.map((ph) => `<div class="phase${ph.upcoming ? ' next' : ''}">
+        <div class="rng">Games<b>${ph.from}&ndash;${ph.to}</b></div>
+        <div class="bans">${banCell(ph, 'host')}${banCell(ph, 'opponent')}</div>
+        <div class="rec">${ph.played ? `<span class="ca">${ph.wins[0]}</span>&ndash;<span class="cb">${ph.wins[1]}</span>` : '&ndash;'}<small>${ph.played ? ph.played + ' played' : 'upcoming'}</small></div>
+      </div>`).join('')}</div>
+      <p class="note">A banned card is gone for both players until the next ban phase.${modToken ? ' Mod mode: pick a card and save; clear the field and save to remove a ban.' : ''}</p>
+    </section>
+    <section class="panel">
+      <header><h2>Highlights</h2><span>${a.n} games</span></header>
+      <div class="hl">
+        ${a.clutch ? `<div><div class="v">${a.clutch.low}<small>HP</small></div><p>Closest call: ${nameOf(a.clutch.w)} won game ${a.clutch.n} with a tower that low</p></div>` : ''}
+        <div><div class="v">${a.oneNil}<small>/ ${a.n}</small></div><p>Games that ended 1-0</p></div>
+        <div><div class="v"><span class="ca">${a.best[0]}</span> <small>vs</small> <span class="cb">${a.best[1]}</span></div><p>Longest win streak</p></div>
+        <div><div class="v">${a.leadChanges}</div><p>Times the lead changed hands</p></div>
+        <div><div class="v">${a.three[0] + a.three[1]}</div><p>Three-crown wins: ${nameOf('a')} ${a.three[0]}, ${nameOf('b')} ${a.three[1]}</p></div>
+        <div><div class="v">${a.leaked[0].toFixed(1)} <small>vs</small> ${a.leaked[1].toFixed(1)}</div><p>Elixir leaked per game</p></div>
+      </div>
+    </section>
+    <section class="panel span2">
+      <header><h2>Momentum</h2><span>score difference after each game</span></header>
+      <div class="chart">
+        <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Score difference after each game">
+          <defs><clipPath id="up"><rect x="0" y="0" width="${W}" height="${Y(0)}"/></clipPath><clipPath id="dn"><rect x="0" y="${Y(0)}" width="${W}" height="${H}"/></clipPath></defs>
+          <path d="${area}" fill="#f6b73c" fill-opacity=".14" clip-path="url(#up)"/>
+          <path d="${area}" fill="#5b93ff" fill-opacity=".14" clip-path="url(#dn)"/>
+          <line x1="0" x2="${W}" y1="${Y(0)}" y2="${Y(0)}" stroke="#2b3140" stroke-dasharray="3 6" vector-effect="non-scaling-stroke"/>
+          ${started.map((ph) => `<line x1="${X(ph.from - 1)}" x2="${X(ph.from - 1)}" y1="0" y2="${H}" stroke="#ff5c5c" stroke-opacity=".5" stroke-dasharray="2 5" vector-effect="non-scaling-stroke"/>`).join('')}
+          <path d="${path}" fill="none" stroke="#f3f4f7" stroke-width="3" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+        </svg>
+        ${started.map((ph) => `<span class="bl" style="left:${(X(ph.from - 1) / W) * 100}%">bans ${ph.from}&ndash;${ph.to}</span>`).join('')}
+      </div>
+      <div class="cells">${a.games.map((g) => `<div class="cell ${g.w}" title="Game ${g.n}: ${g.a.crowns}-${g.b.crowns}"></div>`).join('')}${'<div class="cell"></div>'.repeat(Math.max(0, s.target * 2 - 1 - a.n))}</div>
+      <div class="legend"><span class="ca">&uarr; ${A} ahead</span><span>${a.n ? `game 1 to ${a.n}` : 'no games yet'}</span><span class="cb">${B} ahead &darr;</span></div>
+    </section>
+    <section class="panel">
+      <header><h2>Decks</h2><span>${a.decks.length} different decks</span></header>
+      <div class="decks">${decks || '<p class="empty">No decks yet.</p>'}</div>
+      ${a.decks.length > 6 ? `<button type="button" class="more" data-toggle="decks">${showAllDecks ? 'Show fewer decks' : `Show all ${a.decks.length} decks`}</button>` : ''}
+    </section>
+    <section class="panel">
+      <header><h2>Every game</h2><span>newest first</span></header>
+      <div class="log">${log || '<p class="empty">The first game shows up here about a minute after it ends.</p>'}</div>
+      ${a.n > 10 ? `<button type="button" class="more" data-toggle="games">${showAllGames ? 'Show the last 10 games' : `Show all ${a.n} games`}</button>` : ''}
+    </section>
+  </div>
+  <footer>Results from the in-game battle log, checked every minute while the series is live. Bans are entered by the mods.</footer>`;
+}
+
+app.addEventListener('click', (e) => {
+  const t = e.target.closest('[data-toggle]');
+  if (!t) return;
+  if (t.dataset.toggle === 'decks') showAllDecks = !showAllDecks; else showAllGames = !showAllGames;
+  render();
+});
+
+app.addEventListener('submit', async (e) => {
+  const form = e.target.closest('form.banedit');
+  if (!form) return;
+  e.preventDefault();
+  const input = form.querySelector('input'), err = form.querySelector('.err'), btn = form.querySelector('button');
+  const card = input.value.trim();
+  if (card && !(card in (window.BO99_CARDS || {}))) { err.textContent = 'Pick a card from the list'; err.hidden = false; return; }
+  btn.disabled = true; btn.textContent = 'Saving'; err.hidden = true;
+  try {
+    payload = await call({ action: 'ban_set', slug, modToken, fromGame: Number(form.dataset.from), side: form.dataset.side, card: card || null });
+    render();
+  } catch (x) {
+    btn.disabled = false; btn.textContent = 'Save';
+    err.textContent = x.status === 403 ? 'Mod link no longer valid' : 'Could not save, try again'; err.hidden = false;
+  }
+});
+
+async function loadSeries(first) {
+  // do not wipe a ban the mod is typing
+  if (!first && document.activeElement && document.activeElement.closest('form.banedit')) return schedule();
+  try {
+    payload = await call({ action: 'session', slug });
+    render();
+  } catch (x) {
+    if (first) app.innerHTML = `<p class="empty">${x.status === 404 ? 'This series does not exist.' : 'The series could not be loaded. Try again in a moment.'} <a class="ca" href="./">All series</a></p>`;
+  }
+  schedule();
+}
+function schedule() {
+  clearTimeout(timer);
+  if (!payload || payload.session.status === 'live') timer = setTimeout(() => loadSeries(false), 30000);
+}
+
+async function startSeries() {
+  const fromUrl = params.get('mod');
+  if (fromUrl) {
+    try { localStorage.setItem(modKey(slug), fromUrl); } catch (_) { /* storage unavailable */ }
+    params.delete('mod');
+    history.replaceState(null, '', `${location.pathname}?${params}`);
+  }
+  let token = fromUrl;
+  if (!token) { try { token = localStorage.getItem(modKey(slug)); } catch (_) { token = null; } }
+  if (token) {
+    try {
+      const r = await call({ action: 'mod_check', slug, modToken: token });
+      if (r.ok) {
+        modToken = token;
+        document.getElementById('bo99-cards').innerHTML = Object.keys(window.BO99_CARDS || {}).sort().map((n) => `<option value="${esc(n)}">`).join('');
+      }
+    } catch (_) { /* not a mod */ }
+  }
+  loadSeries(true);
+}
+
+// ---------- archive ----------
+async function startArchive() {
+  document.title = 'Best of 99';
+  try {
+    const { sessions } = await call({ action: 'sessions' });
+    app.innerHTML = `<div class="top"><span class="pill"><i></i>Best of 99</span></div>
+      <section class="panel"><header><h2>Series</h2><span>newest first</span></header>
+      ${sessions.length ? '' : '<p class="empty">No series yet. A new one appears here as soon as the first game is played.</p>'}
+      <div class="list">${sessions.map((s) => `<a href="?s=${encodeURIComponent(s.slug)}">
+        <div><div class="t"><span class="ca">${esc(s.host_name)}</span> vs <span class="cb">${esc(s.opponent_name)}</span></div>
+        <small>${day(s.started_at)} &middot; from ${time(s.started_at)}</small></div>
+        <span class="pill${s.status === 'live' ? '' : ' done'}"><i></i>${s.status === 'live' ? 'Live' : 'Final'}</span></a>`).join('')}</div></section>`;
+  } catch (_) {
+    app.innerHTML = '<p class="empty">The series could not be loaded. Try again in a moment.</p>';
+  }
+}
+
+slug ? startSeries() : startArchive();
+</script>
+</body>
+</html>
