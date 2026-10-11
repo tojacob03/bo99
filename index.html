@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Best of 99</title>
 <meta name="description" content="Live score, bans, decks and every game of a Clash Royale best-of-99 series.">
-<meta name="theme-color" content="#0d0f13">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%225%22 fill=%22%230d0f13%22/%3E%3Crect x=%226%22 y=%2214%22 width=%229%22 height=%224%22 fill=%22%23e8a93a%22/%3E%3Crect x=%2217%22 y=%2214%22 width=%229%22 height=%224%22 fill=%22%234d86f0%22/%3E%3C/svg%3E">
+<meta name="theme-color" content="#0b0c0f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%225%22 fill=%22%230b0c0f%22/%3E%3Crect x=%226%22 y=%2214%22 width=%229%22 height=%224%22 fill=%22%234b9bff%22/%3E%3Crect x=%2217%22 y=%2214%22 width=%229%22 height=%224%22 fill=%22%23ff5468%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&display=swap">
@@ -14,10 +14,11 @@
 /* Match-center layout after HLTV / VLR / Sofascore: a score header, tabs, then
    dense, square-edged panels with section rules instead of floating cards. */
 :root {
-  --bg: #0d0f13; --panel: #14171d; --row: #191d24; --rowhi: #1e232b; --line: #232833; --line2: #2e3442;
-  --text: #eceef2; --mute: #8c93a3; --dim: #5a6070;
-  --a: #e8a93a; --b: #4d86f0; --a-soft: rgba(232, 169, 58, .16); --b-soft: rgba(77, 134, 240, .16);
-  --live: #ef4b4b; --ban: #ef4b4b;
+  /* Clash Royale's own convention: your side blue, the opponent red. Neutral graphite around it. */
+  --bg: #0b0c0f; --panel: #121418; --row: #191c21; --rowhi: #20242b; --line: #23272e; --line2: #2f343d;
+  --text: #ecedf0; --mute: #8d929c; --dim: #5b606a;
+  --a: #4b9bff; --b: #ff5468; --a-soft: rgba(75, 155, 255, .14); --b-soft: rgba(255, 84, 104, .14);
+  --live: #ff3b3b; --ban: #9aa0aa;
   --cond: 'Barlow Condensed', 'Arial Narrow', sans-serif;
   --body: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
   color-scheme: dark;
@@ -28,7 +29,7 @@ body { background: var(--bg); color: var(--text); font: 400 14px/1.45 var(--body
 a { color: inherit; }
 .wrap { max-width: 1120px; margin: 0 auto; padding: max(16px, env(safe-area-inset-top)) 16px 48px; }
 .ca { color: var(--a); } .cb { color: var(--b); }
-button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--a); outline-offset: 2px; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
 
 /* top line */
 .crumbs { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--mute); padding: 4px 0 12px; }
@@ -144,7 +145,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
 .tagx.hot { color: var(--text); border-color: var(--dim); }
 .game.fresh { animation: fresh 3s ease-out; }
 @keyframes fresh { from { background: var(--rowhi); } to { background: transparent; } }
-.phasebar { padding: 8px 16px; font-size: 12px; font-weight: 600; color: var(--ban); background: rgba(239, 75, 75, .06); border-bottom: 1px solid var(--line); }
+.phasebar { padding: 7px 16px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--mute); background: var(--row); border-bottom: 1px solid var(--line); }
 @media (max-width: 640px) {
   .game { grid-template-columns: 1fr auto; gap: 8px 10px; }
   .game .no { grid-column: 1; display: flex; gap: 8px; align-items: baseline; }
@@ -343,8 +344,8 @@ function timeline(p, a) {
     <div class="tl-scroll" id="tlscroll"><div class="tl" style="--n:${N}">
       <div></div>
       <div class="lead"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Score difference after each game">
-        <line x1="0" x2="${W}" y1="${Y(0)}" y2="${Y(0)}" stroke="#2e3442" vector-effect="non-scaling-stroke"/>
-        <path d="${path}" fill="none" stroke="#eceef2" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+        <line x1="0" x2="${W}" y1="${Y(0)}" y2="${Y(0)}" stroke="#2f343d" vector-effect="non-scaling-stroke"/>
+        <path d="${path}" fill="none" stroke="#ecedf0" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
       </svg></div>
       <div class="who ca">${esc(s.host.name)}</div><div class="row">${cells('a')}</div>
       <div class="who cb">${esc(s.opponent.name)}</div><div class="row">${cells('b')}</div>
