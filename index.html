@@ -9,8 +9,12 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%225%22 fill=%22%230b0c0f%22/%3E%3Crect x=%226%22 y=%2214%22 width=%229%22 height=%224%22 fill=%22%234b9bff%22/%3E%3Crect x=%2217%22 y=%2214%22 width=%229%22 height=%224%22 fill=%22%23ff5468%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="preload" href="fonts/clash-bold.otf" as="font" type="font/otf" crossorigin>
 <style>
+/* Supercell's Clash face for names and numbers only; running text stays Inter. */
+@font-face { font-family: Clash; src: url(fonts/clash-bold.otf) format('opentype'); font-weight: 700; font-display: swap; }
+@font-face { font-family: Clash; src: url(fonts/clash-heavy.otf) format('opentype'); font-weight: 900; font-display: swap; }
 /* Match-center layout after HLTV / VLR / Sofascore: a score header, tabs, then
    dense, square-edged panels with section rules instead of floating cards. */
 :root {
@@ -19,7 +23,7 @@
   --text: #ecedf0; --mute: #8d929c; --dim: #5b606a;
   --a: #4b9bff; --b: #ff5468; --a-soft: rgba(75, 155, 255, .14); --b-soft: rgba(255, 84, 104, .14);
   --live: #ff3b3b; --ban: #9aa0aa;
-  --cond: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --cond: Clash, 'Arial Rounded MT Bold', system-ui, sans-serif;
   --body: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
   color-scheme: dark;
 }
@@ -44,11 +48,11 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
 .head { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
 .match { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; padding: 22px 20px 16px; }
 .team { min-width: 0; }
-.team .nm { font: 700 clamp(26px, 5vw, 40px)/1 var(--cond); letter-spacing: .01em; text-transform: uppercase; }
+.team .nm { font: 700 clamp(18px, 3.6vw, 30px)/1.05 var(--cond); }
 .team .tag { font-size: 12px; color: var(--dim); margin-top: 4px; }
 .team.b { text-align: right; }
 .mid { text-align: center; }
-.mid .sc { font: 700 clamp(46px, 9vw, 72px)/1 var(--cond); white-space: nowrap; }
+.mid .sc { font: 900 clamp(38px, 7.5vw, 60px)/1 var(--cond); white-space: nowrap; }
 .mid .sc span { padding: 0 .12em; color: var(--dim); }
 .match .sub { grid-column: 1 / -1; text-align: center; font-size: 12px; color: var(--mute); margin-top: -4px; }
 .race { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 0 20px 16px; }
@@ -78,7 +82,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
 /* series timeline: one column per game, a row per player (VLR round history) */
 .tl-scroll { overflow-x: auto; padding: 14px 16px 6px 0; }
 .tl { display: grid; grid-template-columns: 80px 1fr; row-gap: 3px; min-width: calc(80px + var(--n) * 13px); }
-.tl .who { font: 700 13px var(--cond); text-transform: uppercase; letter-spacing: .03em; align-self: stretch; display: flex; align-items: center; position: sticky; left: 0; z-index: 1; background: var(--panel); padding: 0 8px 0 16px; }
+.tl .who { font: 700 11px var(--cond); align-self: stretch; display: flex; align-items: center; position: sticky; left: 0; z-index: 1; background: var(--panel); padding: 0 8px 0 16px; }
 .tl > div:first-child { position: sticky; left: 0; z-index: 1; background: var(--panel); }
 .tl .row { display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 2px; }
 .tl .row i { height: 16px; background: var(--row); display: block; }
@@ -95,13 +99,13 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
 .veto { list-style: none; margin: 0; padding: 4px 0; }
 .veto li { display: grid; grid-template-columns: 84px 1fr auto; gap: 12px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); }
 .veto li:last-child { border-bottom: 0; }
-.veto .rng { font: 700 15px var(--cond); color: var(--mute); white-space: nowrap; }
+.veto .rng { font: 700 12px var(--cond); color: var(--mute); white-space: nowrap; }
 .veto .rng.now { color: var(--text); }
 .veto .who { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .veto .ban { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--mute); min-width: 0; }
 .veto .ban img { width: 22px; height: 27px; object-fit: contain; flex: none; filter: grayscale(.5); }
 .veto .ban b { color: var(--text); font-weight: 600; }
-.veto .rec { font: 700 18px var(--cond); white-space: nowrap; text-align: right; }
+.veto .rec { font: 700 15px var(--cond); white-space: nowrap; text-align: right; }
 .veto .rec small { display: block; font: 400 11px var(--body); color: var(--dim); }
 .veto .x { position: relative; display: inline-block; }
 .veto .x::after { content: ""; position: absolute; left: -2px; right: -2px; top: 50%; height: 2px; background: var(--ban); transform: rotate(-35deg); }
@@ -130,14 +134,14 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
 .feed { display: flex; flex-direction: column; }
 .game { display: grid; grid-template-columns: 52px minmax(0, 1fr) 76px minmax(0, 1fr); gap: 12px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); }
 .game:last-child { border-bottom: 0; }
-.game .no { font: 700 18px/1 var(--cond); color: var(--mute); }
+.game .no { font: 700 15px/1 var(--cond); color: var(--mute); }
 .game .no small { display: block; font: 400 11px var(--body); color: var(--dim); margin-top: 3px; }
 .deck8 { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; max-width: 460px; }
 .game .da { justify-self: end; width: 100%; }
 .deck8 img { width: 100%; aspect-ratio: 5 / 6; object-fit: contain; display: block; }
 .game .lose { opacity: .4; }
 .game .res { text-align: center; }
-.game .res .s { font: 700 26px/1 var(--cond); }
+.game .res .s { font: 900 21px/1 var(--cond); }
 .game .res .s .w.a { color: var(--a); } .game .res .s .w.b { color: var(--b); }
 .game .res .s span:not(.w) { color: var(--mute); }
 .game .tags { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: -2px; }
@@ -172,9 +176,9 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
 .list a { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); text-decoration: none; }
 .list a:last-child { border-bottom: 0; }
 .list a:hover { background: var(--row); }
-.list .t { font: 700 22px var(--cond); text-transform: uppercase; }
+.list .t { font: 700 18px var(--cond); }
 .list small { font-size: 12px; color: var(--mute); }
-.list .sc { font: 700 22px var(--cond); }
+.list .sc { font: 700 18px var(--cond); }
 .empty { color: var(--mute); padding: 18px 16px; margin: 0; }
 footer { font-size: 12px; color: var(--dim); text-align: center; margin-top: 22px; }
 @media (max-width: 520px) {
