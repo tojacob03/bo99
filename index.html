@@ -220,6 +220,19 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
 .art.social .r-ban { padding: 8px 0; }
 .art .r-foot { display: flex; justify-content: space-between; font: 500 18px Inter, sans-serif; color: #5b606a; margin-top: auto; }
 
+.modbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 12px; margin-bottom: 12px; border: 1px solid var(--line2); border-radius: 6px; font-size: 13px; color: var(--mute); }
+.modbar b { color: var(--text); }
+.modbar .sp { flex: 1; }
+.btn.warn { border-color: var(--live); color: var(--text); }
+.startf { display: grid; gap: 14px; padding: 16px; }
+.startf label { display: grid; gap: 6px; font-size: 12px; font-weight: 600; color: var(--mute); text-transform: uppercase; letter-spacing: .04em; }
+.startf input, .startf select { font: 500 14px var(--body); color: var(--text); background: var(--bg); border: 1px solid var(--line2); border-radius: 4px; padding: 8px 10px; }
+.startf .two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button[aria-pressed="true"] { border-color: var(--text); }
+.startf .note { font-size: 12px; color: var(--dim); text-transform: none; letter-spacing: 0; font-weight: 400; }
+.startf .warnline { font-size: 13px; color: var(--text); border-left: 2px solid var(--live); padding-left: 10px; }
+.startf .err { color: var(--live); font-size: 13px; }
 .list a { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); text-decoration: none; }
 .list a:last-child { border-bottom: 0; }
 .list a:hover { background: var(--row); }
@@ -283,6 +296,11 @@ const STR = {
     rFinal: 'Endstand', rAfter: (n) => `Stand nach ${n} Spielen`, rStats: 'Kennzahlen', rBestDeck: 'Bestes Deck',
     rClosest: 'Knappster Sieg', rStreak: 'Längste Serie', rChanges: 'Führungswechsel', rThree: 'Drei-Kronen-Siege',
     rRecord: (w, l) => `${w}–${l}`, rNoBan: 'kein Ban', rData: 'Daten: Clash Royale Battle-Log',
+    modBar: 'Mod-Modus', endSeries: 'Serie beenden', endSure: 'Wirklich beenden?', ended: 'Serie beendet', newSeries: 'Neue Serie starten',
+    startTitle: 'Neue Serie starten', startFor: (h) => `für ${h}`, opponent: 'Gegner', recent: 'Letzte Gegner', tagPh: 'Spieler-Tag, z. B. #J0VU9CGP',
+    target: 'Siege zum Gewinn', banEvery: 'Neue Bans alle', gamesUnit: 'Spiele', start: 'Serie starten', starting: 'Wird gestartet …',
+    liveWarn: (o) => `Läuft gerade: gegen ${o}. Beim Start wird diese Serie beendet.`, startHint: 'Gezählt werden alle Friendlies gegen diesen Gegner ab jetzt, egal in welchem Clan.',
+    notFoundPlayer: 'Spieler-Tag nicht gefunden', badTag: 'Ungültiger Spieler-Tag', gamesCount: (n) => `${n} Spiele`,
   },
   en: {
     allSeries: 'All series', showmatch: 'Showmatch', live: 'Live', final: 'Final',
@@ -316,6 +334,11 @@ const STR = {
     rFinal: 'Final score', rAfter: (n) => `Score after ${n} games`, rStats: 'Key numbers', rBestDeck: 'Best deck',
     rClosest: 'Closest win', rStreak: 'Longest streak', rChanges: 'Lead changes', rThree: 'Three-crown wins',
     rRecord: (w, l) => `${w}–${l}`, rNoBan: 'no ban', rData: 'Data: Clash Royale battle log',
+    modBar: 'Mod mode', endSeries: 'End series', endSure: 'Really end it?', ended: 'Series ended', newSeries: 'Start a new series',
+    startTitle: 'Start a new series', startFor: (h) => `for ${h}`, opponent: 'Opponent', recent: 'Recent opponents', tagPh: 'Player tag, e.g. #J0VU9CGP',
+    target: 'Wins needed', banEvery: 'New bans every', gamesUnit: 'games', start: 'Start series', starting: 'Starting …',
+    liveWarn: (o) => `Running now: against ${o}. Starting ends that series.`, startHint: 'Every friendly against this opponent from now on counts, in any clan.',
+    notFoundPlayer: 'Player tag not found', badTag: 'Invalid player tag', gamesCount: (n) => `${n} games`,
   },
 };
 let lang = 'de';
@@ -441,8 +464,13 @@ function analyse(p) {
 // ---------- page state ----------
 let payload = null, modToken = null, timer = null, lastFetch = 0, seenGames = 0;
 let tab = (location.hash || '#overview').slice(1);
-let allDecks = false, gameFilter = 'all';
+let allDecks = false, gameFilter = 'all', endArmed = false;
 const modKey = (s) => `bo99-mod-${s}`;
+const readStore = (k) => { try { return localStorage.getItem(k); } catch (_) { return null; } };
+const writeStore = (k, v) => { try { localStorage.setItem(k, v); } catch (_) { /* storage unavailable */ } };
+// a ?mod= link is remembered for this series and, if it is a host token, for every series
+const urlToken = params.get('mod');
+if (urlToken) { params.delete('mod'); history.replaceState(null, '', `${location.pathname}${params.toString() ? `?${params}` : ''}${location.hash}`); }
 
 function header(p, a) {
   const s = p.session, A = esc(s.host.name), B = esc(s.opponent.name);
@@ -707,7 +735,10 @@ function render() {
   else if (tab === 'games') body = feed(p, a, 0, true);
   else if (tab === 'decks') body = deckTable(p, a);
   else body = recapPanel(p, a);
-  app.innerHTML = `${header(p, a)}${body}<footer>${T.footer}</footer>`;
+  const modbar = modToken ? `<div class="modbar"><b>${T.modBar}</b><span class="sp"></span>
+    ${p.session.status === 'live' ? `<button class="btn" data-end="1">${endArmed ? T.endSure : T.endSeries}</button>` : `<span>${T.ended}</span>`}
+    <a class="btn" href="./" style="text-decoration:none">${T.newSeries}</a></div>` : '';
+  app.innerHTML = `${modbar}${header(p, a)}${body}<footer>${T.footer}</footer>`;
   const sc = document.getElementById('tlscroll');
   if (sc) sc.scrollLeft = sc.scrollWidth;
   fitRecap();
@@ -724,8 +755,14 @@ function updateAgo() {
 }
 
 app.addEventListener('click', (e) => {
-  const t = e.target.closest('[data-tab],[data-filter],[data-more],[data-lang],[data-download]');
+  const t = e.target.closest('[data-tab],[data-filter],[data-more],[data-lang],[data-download],[data-end],[data-opp]');
   if (!t) return;
+  if (t.dataset.opp) { const f = document.getElementById('opptag'); f.value = `#${t.dataset.opp}`; document.querySelectorAll('[data-opp]').forEach((b) => b.setAttribute('aria-pressed', b === t)); return; }
+  if (t.dataset.end) {
+    if (!endArmed) { endArmed = true; render(); setTimeout(() => { if (endArmed) { endArmed = false; payload && render(); } }, 5000); return; }
+    endArmed = false; t.disabled = true;
+    return call({ action: 'end', slug, modToken }).then(() => loadSeries(true)).catch(() => { t.disabled = false; });
+  }
   if (t.dataset.download) return downloadRecap(t.dataset.download, t);
   if (t.dataset.lang) return setLang(t.dataset.lang);
   if (t.dataset.tab) { tab = t.dataset.tab; history.replaceState(null, '', `${location.pathname}${location.search}#${tab}`); window.scrollTo({ top: 0 }); }
@@ -773,19 +810,13 @@ function schedule() {
 document.addEventListener('visibilitychange', () => { if (!document.hidden && payload && payload.session.status === 'live' && Date.now() - lastFetch > 5000) loadSeries(false); });
 
 async function startSeries() {
-  const fromUrl = params.get('mod');
-  if (fromUrl) {
-    try { localStorage.setItem(modKey(slug), fromUrl); } catch (_) { /* storage unavailable */ }
-    params.delete('mod');
-    history.replaceState(null, '', `${location.pathname}?${params}${location.hash}`);
-  }
-  let token = fromUrl;
-  if (!token) { try { token = localStorage.getItem(modKey(slug)); } catch (_) { token = null; } }
-  if (token) {
+  if (urlToken) { writeStore(modKey(slug), urlToken); writeStore('bo99-mod', urlToken); }
+  for (const token of [...new Set([urlToken, readStore(modKey(slug)), readStore('bo99-mod')].filter(Boolean))]) {
     try {
       if ((await call({ action: 'mod_check', slug, modToken: token })).ok) {
         modToken = token;
         document.getElementById('bo99-cards').innerHTML = Object.keys(window.BO99_CARDS || {}).sort().map((n) => `<option value="${esc(n)}">`).join('');
+        break;
       }
     } catch (_) { /* not a mod */ }
   }
@@ -793,12 +824,30 @@ async function startSeries() {
   loadSeries(true);
 }
 
-let archive = null;
+let archive = null, hostInfo = null;
+function startForm() {
+  const h = hostInfo;
+  return `<section class="panel" style="margin-bottom:16px"><h2>${T.startTitle} <span>${T.startFor(esc(h.host.name))}</span></h2>
+    <form class="startf" id="startf">
+      ${h.live ? `<div class="warnline">${T.liveWarn(esc(h.live.opponent_name))}</div>` : ''}
+      <label>${T.opponent}<input id="opptag" placeholder="${T.tagPh}" autocomplete="off" required></label>
+      ${h.opponents.length ? `<div><div class="note" style="margin-bottom:6px">${T.recent}</div><div class="chips">${h.opponents.map((o) => `<button type="button" class="btn" data-opp="${esc(o.tag)}" aria-pressed="false">${esc(o.name)} <span style="color:var(--dim)">· ${T.gamesCount(o.games)}</span></button>`).join('')}</div></div>` : ''}
+      <div class="two"><label>${T.target}<input id="target" type="number" min="1" max="100" value="${h.host.target}"></label>
+      <label>${T.banEvery}<input id="banevery" type="number" min="1" max="100" value="${h.host.banEvery}"></label></div>
+      <div class="note">${T.startHint}</div>
+      <div><button class="btn primary" type="submit">${T.start}</button> <span class="err" id="starterr" hidden></span></div>
+    </form></section>`;
+}
 async function startArchive() {
   document.title = 'Best of 99';
   try {
+    const token = urlToken || readStore('bo99-mod');
+    if (token && !hostInfo) {
+      try { hostInfo = await call({ action: 'host_check', modToken: token }); writeStore('bo99-mod', token); hostInfo.token = token; } catch (_) { hostInfo = null; }
+    }
     archive = archive || (await call({ action: 'sessions' })).sessions;
-    app.innerHTML = `<div class="crumbs"><span>Best of 99 &middot; ${T.allSeries}</span>${langSwitch()}</div>
+    app.innerHTML = `${hostInfo ? `<div class="modbar"><b>${T.modBar}</b></div>` : ''}<div class="crumbs"><span>Best of 99 &middot; ${T.allSeries}</span>${langSwitch()}</div>
+      ${hostInfo ? startForm() : ''}
       <section class="panel"><h2>${T.allSeries} <span>${T.newest}</span></h2>
       ${archive.length ? '' : `<p class="empty">${T.noSeries}</p>`}
       <div class="list">${archive.map((s) => `<a href="?s=${encodeURIComponent(s.slug)}">
@@ -810,6 +859,22 @@ async function startArchive() {
     app.innerHTML = `<p class="empty">${T.loadFail}</p>`;
   }
 }
+app.addEventListener('submit', async (e) => {
+  const form = e.target.closest('#startf');
+  if (!form) return;
+  e.preventDefault();
+  const err = document.getElementById('starterr'), btn = form.querySelector('button[type=submit]');
+  const tag = document.getElementById('opptag').value.trim().toUpperCase().replace(/O/g, '0');
+  if (!/^#?[0289PYLQGRJCUV]{3,12}$/.test(tag)) { err.textContent = T.badTag; err.hidden = false; return; }
+  btn.disabled = true; btn.textContent = T.starting; err.hidden = true;
+  try {
+    const { slug: next } = await call({ action: 'start', modToken: hostInfo.token, opponentTag: tag, target: Number(document.getElementById('target').value) || 50, banEvery: Number(document.getElementById('banevery').value) || 20 });
+    location.href = `?s=${encodeURIComponent(next)}`;
+  } catch (x) {
+    btn.disabled = false; btn.textContent = T.start;
+    err.textContent = x.status === 404 ? T.notFoundPlayer : T.loadFail; err.hidden = false;
+  }
+});
 
 slug ? startSeries() : startArchive();
 </script>
