@@ -415,19 +415,23 @@ function analyse(p) {
   diff.slice(1).forEach((d) => { const s = Math.sign(d); if (s && sign && s !== sign) leadChanges++; if (s) sign = s; });
 
   const every = p.session.banEvery;
-  const blocks = Math.max(1, Math.ceil(n / every), ...p.bans.map((b) => Math.ceil(b.fromGame / every)));
-  const phases = [];
-  for (let i = 0; i < blocks + (n > 0 && n % every === 0 ? 1 : 0); i++) {
-    const from = i * every + 1, to = from + every - 1;
+  const phaseStart = (gameNo) => (gameNo - 1 - ((gameNo - 1) % every)) + 1;
+  const maxGame = Math.max(n, ...p.bans.map((b) => b.fromGame || 1), 1);
+  const phaseStarts = [...new Set([
+    ...Array.from({ length: Math.max(1, Math.ceil(maxGame / every)) }, (_, i) => i * every + 1),
+    ...p.bans.map((b) => phaseStart(b.fromGame)),
+  ])].sort((a, b) => a - b);
+  const phases = phaseStarts.map((from) => {
+    const to = from + every - 1;
     const inPhase = games.filter((g) => g.n >= from && g.n <= to);
-    phases.push({
+    return {
       from, to,
-      banA: p.bans.find((b) => b.fromGame === from && b.side === 'host')?.card ?? null,
-      banB: p.bans.find((b) => b.fromGame === from && b.side === 'opponent')?.card ?? null,
+      banA: p.bans.find((b) => phaseStart(b.fromGame) === from && b.side === 'host')?.card ?? null,
+      banB: p.bans.find((b) => phaseStart(b.fromGame) === from && b.side === 'opponent')?.card ?? null,
       wins: [inPhase.filter((g) => g.w === 'a').length, inPhase.filter((g) => g.w === 'b').length],
       played: inPhase.length, upcoming: inPhase.length === 0,
-    });
-  }
+    };
+  });
 
   const decks = new Map();
   games.forEach((g) => {
