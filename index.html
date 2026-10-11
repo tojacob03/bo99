@@ -1,16 +1,17 @@
 <!doctype html>
-<html lang="en">
+<html lang="de">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Best of 99</title>
-<meta name="description" content="Live score, bans, decks and every game of a Clash Royale best-of-99 series.">
+<meta name="description" content="Live-Stand, Bans, Decks und jedes Spiel einer Clash Royale Best-of-99-Serie.">
 <meta name="theme-color" content="#0b0c0f">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%225%22 fill=%22%230b0c0f%22/%3E%3Crect x=%226%22 y=%2214%22 width=%229%22 height=%224%22 fill=%22%234b9bff%22/%3E%3Crect x=%2217%22 y=%2214%22 width=%229%22 height=%224%22 fill=%22%23ff5468%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" crossorigin="anonymous">
 <link rel="preload" href="fonts/clash-bold.otf" as="font" type="font/otf" crossorigin>
+<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js" defer></script>
 <style>
 /* Supercell's Clash face for names and numbers only; running text stays Inter. */
 @font-face { font-family: Clash; src: url(fonts/clash-bold.otf) format('opentype'); font-weight: 700; font-display: swap; }
@@ -21,7 +22,7 @@
   /* Clash Royale's own convention: your side blue, the opponent red. Neutral graphite around it. */
   --bg: #0b0c0f; --panel: #121418; --row: #191c21; --rowhi: #20242b; --line: #23272e; --line2: #2f343d;
   --text: #ecedf0; --mute: #8d929c; --dim: #5b606a;
-  --a: #4b9bff; --b: #ff5468; --a-soft: rgba(75, 155, 255, .14); --b-soft: rgba(255, 84, 104, .14);
+  --a: #4b9bff; --b: #ff5468;
   --live: #ff3b3b; --ban: #9aa0aa;
   --cond: Clash, 'Arial Rounded MT Bold', system-ui, sans-serif;
   --body: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -35,16 +36,19 @@ a { color: inherit; }
 .ca { color: var(--a); } .cb { color: var(--b); }
 button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
 
-/* top line */
-.crumbs { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--mute); padding: 4px 0 12px; }
+.crumbs { display: flex; justify-content: space-between; align-items: center; gap: 8px 12px; flex-wrap: wrap; font-size: 12px; color: var(--mute); padding: 4px 0 12px; }
 .crumbs a { text-decoration: none; color: var(--mute); }
 .crumbs a:hover { color: var(--text); }
+.crumbs .right { display: inline-flex; align-items: center; gap: 14px; }
+.lang { display: inline-flex; border: 1px solid var(--line2); border-radius: 4px; overflow: hidden; }
+.lang button { appearance: none; background: none; border: 0; color: var(--dim); font: 600 11px var(--body); padding: 3px 8px; cursor: pointer; }
+.lang button[aria-pressed="true"] { background: var(--row); color: var(--text); }
 .live { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--live); letter-spacing: .06em; text-transform: uppercase; font-size: 11px; }
 .live i { width: 7px; height: 7px; border-radius: 50%; background: var(--live); animation: pulse 1.6s ease-in-out infinite; }
 .live.final { color: var(--mute); } .live.final i { background: var(--mute); animation: none; }
+.live .ago { font-weight: 500; color: var(--dim); text-transform: none; letter-spacing: 0; }
 @keyframes pulse { 50% { opacity: .35; } }
 
-/* score header */
 .head { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
 .match { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; padding: 22px 20px 16px; }
 .team { min-width: 0; }
@@ -64,40 +68,35 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
 .meta { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 10px 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--mute); }
 .meta b { color: var(--text); font-weight: 600; }
 
-/* tabs */
-.tabs { display: flex; gap: 0; border-bottom: 1px solid var(--line); margin: 18px 0 16px; overflow-x: auto; }
+.tabs { display: flex; border-bottom: 1px solid var(--line); margin: 18px 0 16px; overflow-x: auto; }
 .tabs button { appearance: none; background: none; border: 0; border-bottom: 2px solid transparent; color: var(--mute); font: 600 14px var(--body); padding: 10px 16px; cursor: pointer; white-space: nowrap; }
 .tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--text); }
 .tabs button:hover { color: var(--text); }
 
-/* panels */
 .cols { display: grid; grid-template-columns: 1fr; gap: 16px; }
 @media (min-width: 920px) { .cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; min-width: 0; }
-.panel > h2 { margin: 0; padding: 12px 16px; font: 700 13px var(--body); letter-spacing: .04em; text-transform: uppercase; color: var(--mute); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 12px; }
+.panel > h2 { margin: 0; padding: 12px 16px; font: 700 13px var(--body); letter-spacing: .04em; text-transform: uppercase; color: var(--mute); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .panel > h2 span { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--dim); }
-.pad { padding: 14px 16px; }
-.stack { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 
 /* series timeline: one column per game, a row per player (VLR round history) */
 .tl-scroll { overflow-x: auto; padding: 14px 16px 6px 0; }
 .tl { display: grid; grid-template-columns: 80px 1fr; row-gap: 3px; min-width: calc(80px + var(--n) * 13px); }
 .tl .who { font: 700 11px var(--cond); align-self: stretch; display: flex; align-items: center; position: sticky; left: 0; z-index: 1; background: var(--panel); padding: 0 8px 0 16px; }
-.tl > div:first-child { position: sticky; left: 0; z-index: 1; background: var(--panel); }
+.tl .pin { position: sticky; left: 0; z-index: 1; background: var(--panel); }
 .tl .row { display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 2px; }
 .tl .row i { height: 16px; background: var(--row); display: block; }
 .tl .row i.w.a { background: var(--a); } .tl .row i.w.b { background: var(--b); }
 .tl .row i.w.big { box-shadow: inset 0 0 0 2px rgba(0,0,0,.45); }
 .tl .row i.cut { margin-left: 4px; }
-.tl .lead { grid-column: 2; height: 70px; margin-bottom: 6px; }
+.tl .lead { height: 70px; margin-bottom: 6px; }
 .tl .lead svg { display: block; width: 100%; height: 100%; }
-.tl .nums { grid-column: 2; display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 2px; font-size: 9px; color: var(--dim); text-align: center; margin-top: 2px; }
+.tl .nums { display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 2px; font-size: 9px; color: var(--dim); text-align: center; margin-top: 2px; }
 .tl-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; padding: 4px 16px 14px; font-size: 12px; color: var(--mute); }
 .tl-legend b { display: inline-block; width: 10px; height: 10px; vertical-align: -1px; margin-right: 5px; }
 
-/* bans as a veto list (HLTV) */
 .veto { list-style: none; margin: 0; padding: 4px 0; }
-.veto li { display: grid; grid-template-columns: 84px 1fr auto; gap: 12px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+.veto li { display: grid; grid-template-columns: 96px 1fr auto; gap: 12px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); }
 .veto li:last-child { border-bottom: 0; }
 .veto .rng { font: 700 12px var(--cond); color: var(--mute); white-space: nowrap; }
 .veto .rng.now { color: var(--text); }
@@ -107,16 +106,17 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
 .veto .ban b { color: var(--text); font-weight: 600; }
 .veto .rec { font: 700 15px var(--cond); white-space: nowrap; text-align: right; }
 .veto .rec small { display: block; font: 400 11px var(--body); color: var(--dim); }
-.veto .x { position: relative; display: inline-block; }
-.veto .x::after { content: ""; position: absolute; left: -2px; right: -2px; top: 50%; height: 2px; background: var(--ban); transform: rotate(-35deg); }
+.x { position: relative; display: inline-block; }
+.x::after { content: ""; position: absolute; left: -2px; right: -2px; top: 50%; height: 2px; background: var(--ban); transform: rotate(-35deg); }
 .banedit { display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .banedit input { width: 160px; max-width: 100%; font: 500 13px var(--body); color: var(--text); background: var(--bg); border: 1px solid var(--line2); border-radius: 4px; padding: 5px 8px; }
 .banedit button, .btn { font: 600 13px var(--body); color: var(--text); background: var(--row); border: 1px solid var(--line2); border-radius: 4px; padding: 5px 10px; cursor: pointer; }
-.banedit button:disabled { opacity: .45; cursor: default; }
-.banedit .err { color: var(--ban); font-size: 12px; }
+.btn[aria-pressed="true"] { border-color: var(--mute); }
+.btn.primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+.banedit button:disabled, .btn:disabled { opacity: .45; cursor: default; }
+.banedit .err { color: var(--live); font-size: 12px; }
 .foot { padding: 10px 16px; font-size: 12px; color: var(--dim); border-top: 1px solid var(--line); }
 
-/* head-to-head stats (Sofascore match statistics) */
 .cmp { list-style: none; margin: 0; padding: 6px 0; }
 .cmp li { padding: 9px 16px; }
 .cmp .l { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; font-size: 13px; }
@@ -130,7 +130,6 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
 .cmp .bars div:last-child i { left: 0; background: var(--b); }
 .cmp .bars .lo i { opacity: .45; }
 
-/* game feed: Morten's deck left, score in the middle, Doom's deck right */
 .feed { display: flex; flex-direction: column; }
 .game { display: grid; grid-template-columns: 52px minmax(0, 1fr) 76px minmax(0, 1fr); gap: 12px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); }
 .game:last-child { border-bottom: 0; }
@@ -160,7 +159,6 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
   .game .tags { grid-column: 1 / -1; margin: 0; }
 }
 
-/* decks table */
 .dtable { width: 100%; border-collapse: collapse; }
 .dtable th { font: 600 11px var(--body); text-transform: uppercase; letter-spacing: .05em; color: var(--dim); text-align: right; padding: 10px 16px; border-bottom: 1px solid var(--line); white-space: nowrap; }
 .dtable th:first-child { text-align: left; }
@@ -172,26 +170,75 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
 .tablewrap { overflow-x: auto; }
 .more { display: block; width: calc(100% - 32px); margin: 10px 16px 14px; text-align: center; }
 
-/* archive */
+/* recap: a fixed-size artboard, scaled down for the preview, exported 1:1 as PNG */
+.rc-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.rc-tools .hint { font-size: 12px; color: var(--dim); margin-left: auto; }
+.rc-stage { padding: 16px; }
+.rc-fit { position: relative; overflow: hidden; margin: 0 auto; border: 1px solid var(--line); }
+.rc-fit > .art { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.art { background: #0b0c0f; color: #ecedf0; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column; font-feature-settings: "tnum" 1; }
+.art .r-top { display: flex; justify-content: space-between; font: 600 22px Inter, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #8d929c; }
+.art .r-top b { color: #ecedf0; font-weight: 700; }
+.art .r-score { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 40px; }
+.art .r-name { font: 700 76px/1 Clash, sans-serif; }
+.art .r-name.b { text-align: right; }
+.art .r-num { font: 900 190px/0.95 Clash, sans-serif; white-space: nowrap; }
+.art .r-num span { color: #3a404b; padding: 0 .08em; }
+.art .r-verdict { text-align: center; font: 600 28px Inter, sans-serif; color: #8d929c; }
+.art .r-verdict b { font-weight: 700; }
+.art .r-label { font: 700 18px Inter, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: #5b606a; margin-bottom: 14px; }
+.art .r-tl .row { display: grid; gap: 3px; }
+.art .r-tl .row i { display: block; background: #191c21; }
+.art .r-tl .row i.a { background: #4b9bff; } .art .r-tl .row i.b { background: #ff5468; }
+.art .r-tl .row i.cut { margin-left: 8px; }
+.art .r-tl .who { font: 700 22px Clash, sans-serif; }
+.art .r-cols { display: grid; gap: 36px; }
+.art .r-ban { display: grid; grid-template-columns: auto 1fr auto; gap: 18px; align-items: center; padding: 12px 0; border-bottom: 2px solid #23272e; }
+.art .r-ban:last-child { border-bottom: 0; }
+.art .r-ban .rng { font: 700 22px Clash, sans-serif; color: #8d929c; white-space: nowrap; }
+.art .r-ban .cards { display: flex; gap: 10px; }
+.art .r-ban .cards img { width: 48px; height: 58px; object-fit: contain; }
+.art .r-ban .cards .none { font: 500 20px Inter, sans-serif; color: #5b606a; align-self: center; }
+.art .r-ban .rec { font: 700 30px Clash, sans-serif; white-space: nowrap; }
+.art .r-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.art .r-stat { background: #121418; border: 2px solid #23272e; border-radius: 8px; padding: 18px 22px; }
+.art .r-stat .v { font: 900 56px/1 Clash, sans-serif; }
+.art .r-stat .v small { font-size: 26px; color: #8d929c; margin-left: 6px; }
+.art .r-stat .k { font: 500 20px Inter, sans-serif; color: #8d929c; margin-top: 8px; }
+.art .r-deck { margin-bottom: 18px; }
+.art .r-deck .who { display: flex; justify-content: space-between; font: 700 24px Clash, sans-serif; margin-bottom: 8px; }
+.art .r-deck .who span { font: 600 20px Inter, sans-serif; color: #8d929c; }
+.art .r-deck .cards { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; }
+.art .r-deck .cards img { width: 100%; aspect-ratio: 5 / 6; object-fit: contain; display: block; }
+.art.social .r-top { font-size: 18px; }
+.art.social .r-deck { margin-bottom: 10px; }
+.art.social .r-deck .cards { gap: 10px; }
+.art.social .r-deck { margin-bottom: 18px; }
+.art.social .r-stat { padding: 14px 18px; }
+.art.social .r-stat .v { font-size: 46px; }
+.art.social .r-stat .k { font-size: 18px; }
+.art.social .r-ban { padding: 8px 0; }
+.art .r-foot { display: flex; justify-content: space-between; font: 500 18px Inter, sans-serif; color: #5b606a; margin-top: auto; }
+
 .list a { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); text-decoration: none; }
 .list a:last-child { border-bottom: 0; }
 .list a:hover { background: var(--row); }
 .list .t { font: 700 18px var(--cond); }
 .list small { font-size: 12px; color: var(--mute); }
-.list .sc { font: 700 18px var(--cond); }
 .empty { color: var(--mute); padding: 18px 16px; margin: 0; }
 footer { font-size: 12px; color: var(--dim); text-align: center; margin-top: 22px; }
 @media (max-width: 520px) {
   .match { padding: 18px 14px 14px; gap: 8px; }
   .race, .meta { padding-left: 14px; padding-right: 14px; }
   .team .tag { display: none; }
-  .veto li { grid-template-columns: 74px 1fr auto; gap: 10px; padding: 10px 14px; }
+  .veto li { grid-template-columns: 82px 1fr auto; gap: 10px; padding: 10px 14px; }
+  .rc-tools .hint { margin-left: 0; width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) { .live i, .game.fresh { animation: none; } .track div { transition: none; } }
 </style>
 </head>
 <body>
-<main class="wrap" id="app"><p class="empty">Loading…</p></main>
+<main class="wrap" id="app"><p class="empty">…</p></main>
 <datalist id="bo99-cards"></datalist>
 <script src="cards.js"></script>
 <script>
@@ -201,10 +248,95 @@ const KING_HP = 4824, PRINCESS_HP = 3052, REFRESH_MS = 20000;
 const app = document.getElementById('app');
 const params = new URLSearchParams(location.search);
 const slug = params.get('s');
+
+// ---------- language: German by default, English on request ----------
+const STR = {
+  de: {
+    allSeries: 'Alle Serien', showmatch: 'Showmatch', live: 'Live', final: 'Beendet',
+    justNow: 'gerade aktualisiert', ago: (s) => `vor ${s} s aktualisiert`,
+    sub: (bo, t) => `Best of ${bo} · wer zuerst ${t} Siege hat`, next: (n) => `als Nächstes Spiel ${n}`,
+    toGo: (n) => `noch ${n} ${n === 1 ? 'Sieg' : 'Siege'}`,
+    level: 'Gleichstand', leads: (who, n) => `${who} führt mit ${n}`, winsSeries: (who) => `${who} gewinnt die Serie`,
+    lastN: (who, n) => (n === 1 ? `${who} hat das letzte Spiel gewonnen` : `${who} hat die letzten ${n} gewonnen`), noGames: 'Noch keine Spiele',
+    tabs: { overview: 'Übersicht', games: 'Spiele', decks: 'Decks', recap: 'Recap' },
+    timeline: 'Serienverlauf', perGame: 'eine Spalte pro Spiel',
+    legendLine: 'Linie: Abstand nach jedem Spiel', win: (who) => `Sieg ${who}`, legendThree: 'Dunkler Rahmen: drei Kronen', legendGap: 'Lücke: neue Bans',
+    bans: 'Bans', bansSub: (n) => `alle ${n} Spiele, gelten für beide`, games: (a, b) => `Spiele ${a}–${b}`,
+    banned: (who, card) => `${who} bannt <b>${card}</b>`, notSet: (who) => `${who}: noch offen`, noBan: (who) => `${who}: kein Ban eingetragen`,
+    played: (n) => `${n} gespielt`, upNext: 'als Nächstes',
+    modHint: 'Mod-Modus: Karte eingeben und speichern. Feld leeren und speichern entfernt den Ban.',
+    save: 'Speichern', saving: 'Speichert', pickCard: 'Karte aus der Liste wählen', badLink: 'Mod-Link nicht mehr gültig', saveFail: 'Speichern fehlgeschlagen, bitte erneut',
+    cardPh: 'Karte', bannedBy: (who) => `Von ${who} gebannte Karte`,
+    h2h: 'Direktvergleich',
+    stats: { wins: 'Siege', three: 'Drei-Kronen-Siege', oneNil: 'Siege mit einer Krone', best: 'Längste Siegesserie', damage: 'Turmschaden pro Spiel', leaked: 'Verschwendetes Elixier pro Spiel', decks: 'Verschiedene Decks', closest: 'Knappster Sieg, niedrigster Turm' },
+    leadChanges: (n) => `Die Führung wechselte ${n}-mal.`,
+    latest: 'Letzte Spiele', newest: 'neueste zuerst', allGames: 'Alle Spiele', everyGame: 'Alle Spiele', all: 'Alle',
+    tagThree: 'Drei Kronen', tagHp: (hp) => `Sieg mit ${hp} HP`, tagMirror: 'Spiegelduell',
+    phase: (a, b) => `Spiele ${a}–${b}`, phaseBans: (list) => `Bans: ${list}`, phaseNone: 'noch keine Bans eingetragen',
+    firstGame: 'Das erste Spiel erscheint hier etwa eine Minute nach Spielende.',
+    decksSub: (n) => `${n} Decks, meistgespielte zuerst`, colDeck: 'Deck', colGames: 'Spiele', colRate: 'Winrate', showAll: (n) => `Alle ${n} zeigen`, showLess: 'Weniger zeigen',
+    footer: 'Ergebnisse aus dem Battle-Log, aktualisiert sich während der Serie automatisch. Bans tragen die Mods ein. Inoffizielle Fanseite.',
+    notFound: 'Diese Serie gibt es nicht.', loadFail: 'Die Serie konnte nicht geladen werden. Bitte gleich nochmal versuchen.',
+    noSeries: 'Noch keine Serien. Eine neue erscheint hier, sobald das erste Spiel gespielt ist.', fromTime: (t) => `ab ${t}`,
+    recap: 'Recap', fmtStream: 'Stream 16:9', fmtSocial: 'Social 4:5', download: 'PNG herunterladen', making: 'Wird erstellt …', failed: 'Export fehlgeschlagen',
+    recapHint: 'Das Bild wird in voller Größe exportiert.',
+    rFinal: 'Endstand', rAfter: (n) => `Stand nach ${n} Spielen`, rStats: 'Kennzahlen', rBestDeck: 'Bestes Deck',
+    rClosest: 'Knappster Sieg', rStreak: 'Längste Serie', rChanges: 'Führungswechsel', rThree: 'Drei-Kronen-Siege',
+    rRecord: (w, l) => `${w}–${l}`, rNoBan: 'kein Ban', rData: 'Daten: Clash Royale Battle-Log',
+  },
+  en: {
+    allSeries: 'All series', showmatch: 'Showmatch', live: 'Live', final: 'Final',
+    justNow: 'updated just now', ago: (s) => `updated ${s}s ago`,
+    sub: (bo, t) => `Best of ${bo} · first to ${t}`, next: (n) => `game ${n} next`,
+    toGo: (n) => `${n} ${n === 1 ? 'win' : 'wins'} to go`,
+    level: 'Level', leads: (who, n) => `${who} leads by ${n}`, winsSeries: (who) => `${who} wins the series`,
+    lastN: (who, n) => (n === 1 ? `${who} won the last game` : `${who} has won the last ${n}`), noGames: 'No games yet',
+    tabs: { overview: 'Overview', games: 'Games', decks: 'Decks', recap: 'Recap' },
+    timeline: 'Series timeline', perGame: 'one column per game',
+    legendLine: 'Line: score difference after each game', win: (who) => `${who} win`, legendThree: 'Dark frame: three crowns', legendGap: 'Gap: new bans',
+    bans: 'Bans', bansSub: (n) => `every ${n} games, for both players`, games: (a, b) => `Games ${a}–${b}`,
+    banned: (who, card) => `${who} banned <b>${card}</b>`, notSet: (who) => `${who}: not set yet`, noBan: (who) => `${who}: no ban entered`,
+    played: (n) => `${n} played`, upNext: 'next',
+    modHint: 'Mod mode: type a card and save. Clear the field and save to remove a ban.',
+    save: 'Save', saving: 'Saving', pickCard: 'Pick a card from the list', badLink: 'Mod link no longer valid', saveFail: 'Could not save, try again',
+    cardPh: 'Card', bannedBy: (who) => `Card banned by ${who}`,
+    h2h: 'Head to head',
+    stats: { wins: 'Wins', three: 'Three-crown wins', oneNil: 'Wins by one crown', best: 'Longest win streak', damage: 'Tower damage per game', leaked: 'Elixir leaked per game', decks: 'Different decks', closest: 'Closest win, lowest tower left' },
+    leadChanges: (n) => `Lead changed hands ${n} time${n === 1 ? '' : 's'}.`,
+    latest: 'Latest games', newest: 'newest first', allGames: 'All games', everyGame: 'Every game', all: 'All',
+    tagThree: 'Three crowns', tagHp: (hp) => `Won on ${hp} HP`, tagMirror: 'Mirror',
+    phase: (a, b) => `Games ${a}–${b}`, phaseBans: (list) => `bans ${list}`, phaseNone: 'no bans entered yet',
+    firstGame: 'The first game shows up here about a minute after it ends.',
+    decksSub: (n) => `${n} different decks, most played first`, colDeck: 'Deck', colGames: 'Games', colRate: 'Win rate', showAll: (n) => `Show all ${n}`, showLess: 'Show fewer',
+    footer: 'Results from the in-game battle log, refreshed automatically while the series is live. Bans are entered by the mods. Unofficial fan page.',
+    notFound: 'This series does not exist.', loadFail: 'The series could not be loaded. Try again in a moment.',
+    noSeries: 'No series yet. A new one appears here as soon as the first game is played.', fromTime: (t) => `from ${t}`,
+    recap: 'Recap', fmtStream: 'Stream 16:9', fmtSocial: 'Social 4:5', download: 'Download PNG', making: 'Creating …', failed: 'Export failed',
+    recapHint: 'The image is exported at full size.',
+    rFinal: 'Final score', rAfter: (n) => `Score after ${n} games`, rStats: 'Key numbers', rBestDeck: 'Best deck',
+    rClosest: 'Closest win', rStreak: 'Longest streak', rChanges: 'Lead changes', rThree: 'Three-crown wins',
+    rRecord: (w, l) => `${w}–${l}`, rNoBan: 'no ban', rData: 'Data: Clash Royale battle log',
+  },
+};
+let lang = 'de';
+try { lang = params.get('lang') || localStorage.getItem('bo99-lang') || 'de'; } catch (_) { /* storage unavailable */ }
+if (!STR[lang]) lang = 'de';
+let T = STR[lang];
+const LOCALE = () => (lang === 'de' ? 'de-DE' : 'en-GB');
+function setLang(l) {
+  lang = l; T = STR[l];
+  document.documentElement.lang = l;
+  try { localStorage.setItem('bo99-lang', l); } catch (_) { /* storage unavailable */ }
+  slug ? (payload && render()) : startArchive();
+}
+document.documentElement.lang = lang;
+
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const time = (iso) => new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
-const day = (iso) => new Date(iso).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' });
+const time = (iso) => new Date(iso).toLocaleTimeString(LOCALE(), { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+const day = (iso) => new Date(iso).toLocaleDateString(LOCALE(), { day: 'numeric', month: 'short', year: 'numeric' });
+const num = (v, d = 0) => Number(v).toLocaleString(LOCALE(), { minimumFractionDigits: d, maximumFractionDigits: d });
 const pct = (a, b) => (a + b ? Math.round((a / (a + b)) * 100) : 0);
+const langSwitch = () => `<span class="lang" role="group" aria-label="Language">${['de', 'en'].map((l) => `<button type="button" data-lang="${l}" aria-pressed="${lang === l}">${l.toUpperCase()}</button>`).join('')}</span>`;
 
 async function call(body) {
   const res = await fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -213,13 +345,22 @@ async function call(body) {
   return data;
 }
 
-// card art: the official image first, RoyaleAPI's copy when that one is missing
+// card art: the official image first, RoyaleAPI's copies when that one is missing
 let ICONS = {};
 const SUFFIX = ['', '-ev1', '-hero'];
+const keyOf = (name) => (window.BO99_CARDS || {})[name];
 function cardImg(name, level) {
-  const key = (window.BO99_CARDS || {})[name];
+  const key = keyOf(name);
   const urls = [...new Set([ICONS[`${name}|${level}`], key && ASSETS + key + SUFFIX[Math.min(level, 2)] + '.png', ICONS[`${name}|0`], key && ASSETS + key + '.png'].filter(Boolean))];
   return `<img src="${esc(urls[0] || '')}" data-next="${esc(urls.slice(1).join(' '))}" alt="${esc(name)}" title="${esc(name)}" loading="lazy" onerror="nextImg(this)">`;
+}
+/** Exportable card image: the same art, fetched through the bo99 function so the canvas stays clean. */
+const viaProxy = (u) => `${FN}?img=${encodeURIComponent(u)}`;
+function corsImg(name, level) {
+  const key = keyOf(name);
+  const urls = [...new Set([ICONS[`${name}|${level}`], key && ASSETS + key + SUFFIX[Math.min(level, 2)] + '.png', ICONS[`${name}|0`], key && ASSETS + key + '.png'].filter(Boolean))].map(viaProxy);
+  if (!urls.length) return '<span></span>';
+  return `<img crossorigin="anonymous" src="${esc(urls[0])}" data-next="${esc(urls.slice(1).join(' '))}" alt="${esc(name)}" onerror="nextImg(this)">`;
 }
 window.nextImg = (img) => {
   const rest = (img.dataset.next || '').split(' ').filter(Boolean);
@@ -240,7 +381,7 @@ const damageTo = (s) => (KING_HP - (s.king ?? KING_HP)) + (s.princess || []).red
 function analyse(p) {
   const games = p.games.map((g, i) => {
     const w = g.host.crowns > g.opp.crowns ? 'a' : 'b';
-    return { n: i + 1, t: g.t, a: g.host, b: g.opp, w, margin: Math.abs(g.host.crowns - g.opp.crowns), low: lowestStanding(w === 'a' ? g.host : g.opp), deckA: deckKey(g.host.cards), deckB: deckKey(g.opp.cards) };
+    return { n: i + 1, t: g.t, a: g.host, b: g.opp, w, three: Math.max(g.host.crowns, g.opp.crowns) === 3, low: lowestStanding(w === 'a' ? g.host : g.opp), deckA: deckKey(g.host.cards), deckB: deckKey(g.opp.cards) };
   });
   const n = games.length, wins = [0, 0], diff = [0];
   games.forEach((g) => { wins[g.w === 'a' ? 0 : 1]++; diff.push(wins[0] - wins[1]); });
@@ -275,31 +416,32 @@ function analyse(p) {
       seen.add(key); decks.set(key, d);
     });
   });
+  const deckList = [...decks.values()].sort((x, y) => y.games - x.games || (y.a[0] + y.b[0]) - (x.a[0] + x.b[0]));
+  const bestDeck = (k) => [...deckList].filter((d) => d[k][0] + d[k][1] > 0)
+    .sort((x, y) => y[k][0] - x[k][0] || pct(y[k][0], y[k][1]) - pct(x[k][0], x[k][1]))[0] || null;
   const sideStats = (k) => {
     const mine = games.filter((g) => g.w === k);
     const lows = mine.map((g) => g.low).filter((v) => v !== null);
     return {
       wins: mine.length,
-      three: mine.filter((g) => Math.max(g.a.crowns, g.b.crowns) === 3).length,
+      three: mine.filter((g) => g.three).length,
       oneNil: mine.filter((g) => Math.max(g.a.crowns, g.b.crowns) === 1).length,
       best: best[k === 'a' ? 0 : 1],
       closest: lows.length ? Math.min(...lows) : null,
       damage: n ? games.reduce((s, g) => s + damageTo(k === 'a' ? g.b : g.a), 0) / n : 0,
       leaked: n ? games.reduce((s, g) => s + ((k === 'a' ? g.a : g.b).leaked || 0), 0) / n : 0,
       decks: new Set(games.map((g) => (k === 'a' ? g.deckA : g.deckB))).size,
+      bestDeck: bestDeck(k),
     };
   };
-  return {
-    games, n, wins, diff, current, leader: games[n - 1]?.w ?? null, leadChanges, phases,
-    decks: [...decks.values()].sort((x, y) => y.games - x.games || (y.a[0] + y.b[0]) - (x.a[0] + x.b[0])),
-    A: sideStats('a'), B: sideStats('b'),
-  };
+  const lows = games.filter((g) => g.low !== null).sort((x, y) => x.low - y.low);
+  return { games, n, wins, diff, current, leader: games[n - 1]?.w ?? null, leadChanges, phases, decks: deckList, A: sideStats('a'), B: sideStats('b'), clutch: lows[0] || null };
 }
 
 // ---------- page state ----------
-let payload = null, modToken = null, timer = null, tick = null, lastFetch = 0, seenGames = 0;
+let payload = null, modToken = null, timer = null, lastFetch = 0, seenGames = 0;
 let tab = (location.hash || '#overview').slice(1);
-let allDecks = false, gameFilter = 'all';
+let allDecks = false, gameFilter = 'all', recapFormat = 'stream';
 const modKey = (s) => `bo99-mod-${s}`;
 
 function header(p, a) {
@@ -308,54 +450,52 @@ function header(p, a) {
   const winner = a.wins[0] >= s.target ? 'a' : a.wins[1] >= s.target ? 'b' : null;
   const d = a.wins[0] - a.wins[1];
   const nm = (w) => `<b class="${w === 'a' ? 'ca' : 'cb'}">${w === 'a' ? A : B}</b>`;
-  const state = winner ? `${nm(winner)} wins the series` : d === 0 ? '<b>Level</b>' : `${nm(d > 0 ? 'a' : 'b')} leads by ${Math.abs(d)}`;
-  const streak = a.leader ? `${nm(a.leader)} has won the last ${a.current}` : 'No games yet';
+  const state = winner ? T.winsSeries(nm(winner)) : d === 0 ? `<b>${T.level}</b>` : T.leads(nm(d > 0 ? 'a' : 'b'), Math.abs(d));
+  const streak = a.leader ? T.lastN(nm(a.leader), a.current) : T.noGames;
+  const tabs = [['overview', `${T.tabs.overview}`], ['games', `${T.tabs.games} (${a.n})`], ['decks', `${T.tabs.decks} (${a.decks.length})`], ['recap', T.tabs.recap]];
   return `
   <div class="crumbs">
-    <span><a href="./">All series</a> &nbsp;/&nbsp; Showmatch &middot; ${day(s.startedAt)}</span>
-    <span class="live${live ? '' : ' final'}"><i></i>${live ? 'Live' : 'Final'}<span id="ago" style="font-weight:500;color:var(--dim);text-transform:none;letter-spacing:0"></span></span>
+    <span><a href="./">${T.allSeries}</a> &nbsp;/&nbsp; ${T.showmatch} &middot; ${day(s.startedAt)}</span>
+    <span class="right"><span class="live${live ? '' : ' final'}"><i></i>${live ? T.live : T.final}<span class="ago" id="ago"></span></span>${langSwitch()}</span>
   </div>
   <section class="head">
     <div class="match">
       <div class="team"><div class="nm ca">${A}</div><div class="tag">#${esc(s.host.tag)}</div></div>
-      <div class="mid"><div class="sc" aria-live="polite">${a.wins[0]}<span>:</span>${a.wins[1]}</div>
-</div>
+      <div class="mid"><div class="sc" aria-live="polite">${a.wins[0]}<span>:</span>${a.wins[1]}</div></div>
       <div class="team b"><div class="nm cb">${B}</div><div class="tag">#${esc(s.opponent.tag)}</div></div>
-      <div class="sub">Best of ${s.target * 2 - 1} &middot; first to ${s.target}${live && !winner ? ` &middot; game ${a.n + 1} next` : ''}</div>
+      <div class="sub">${T.sub(s.target * 2 - 1, s.target)}${live && !winner ? ` &middot; ${T.next(a.n + 1)}` : ''}</div>
     </div>
     <div class="race">
-      <div><div class="track a"><div style="width:${Math.min(100, (a.wins[0] / s.target) * 100)}%"></div></div><small>${Math.max(0, s.target - a.wins[0])} wins to go</small></div>
-      <div class="rb"><div class="track b"><div style="width:${Math.min(100, (a.wins[1] / s.target) * 100)}%"></div></div><small>${Math.max(0, s.target - a.wins[1])} wins to go</small></div>
+      <div><div class="track a"><div style="width:${Math.min(100, (a.wins[0] / s.target) * 100)}%"></div></div><small>${T.toGo(Math.max(0, s.target - a.wins[0]))}</small></div>
+      <div class="rb"><div class="track b"><div style="width:${Math.min(100, (a.wins[1] / s.target) * 100)}%"></div></div><small>${T.toGo(Math.max(0, s.target - a.wins[1]))}</small></div>
     </div>
     <div class="meta"><span>${state}</span><span>${streak}</span></div>
   </section>
-  <nav class="tabs" role="tablist">
-    ${[['overview', 'Overview'], ['games', `Games (${a.n})`], ['decks', `Decks (${a.decks.length})`]].map(([k, l]) => `<button role="tab" data-tab="${k}" aria-selected="${tab === k}">${l}</button>`).join('')}
-  </nav>`;
+  <nav class="tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" data-tab="${k}" aria-selected="${tab === k}">${l}</button>`).join('')}</nav>`;
 }
 
 function timeline(p, a) {
   const s = p.session, N = Math.max(a.n, 1);
   const cut = new Set(a.phases.filter((ph) => ph.from > 1 && !ph.upcoming).map((ph) => ph.from));
-  const cells = (side) => a.games.map((g) => `<i class="${g.w === side ? `w ${side}${Math.max(g.a.crowns, g.b.crowns) === 3 ? ' big' : ''}` : ''}${cut.has(g.n) ? ' cut' : ''}" title="Game ${g.n}: ${g.a.crowns}-${g.b.crowns}"></i>`).join('');
+  const cells = (side) => a.games.map((g) => `<i class="${g.w === side ? `w ${side}${g.three ? ' big' : ''}` : ''}${cut.has(g.n) ? ' cut' : ''}" title="${g.n}: ${g.a.crowns}-${g.b.crowns}"></i>`).join('');
   const W = 1000, H = 70, mx = Math.max(3, ...a.diff.map(Math.abs));
   const X = (i) => (i - 0.5) * (W / N), Y = (v) => H / 2 - (v * (H / 2 - 4)) / mx;
   let path = `M0,${Y(0)}`;
   for (let i = 1; i <= a.n; i++) path += ` L${X(i)},${Y(a.diff[i])}`;
   const nums = a.games.map((g) => `<span>${g.n % 10 === 0 || g.n === 1 ? g.n : ''}</span>`).join('');
   return `<section class="panel">
-    <h2>Series timeline <span>one column per game</span></h2>
+    <h2>${T.timeline} <span>${T.perGame}</span></h2>
     <div class="tl-scroll" id="tlscroll"><div class="tl" style="--n:${N}">
-      <div></div>
-      <div class="lead"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Score difference after each game">
+      <div class="pin"></div>
+      <div class="lead"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${T.legendLine}">
         <line x1="0" x2="${W}" y1="${Y(0)}" y2="${Y(0)}" stroke="#2f343d" vector-effect="non-scaling-stroke"/>
         <path d="${path}" fill="none" stroke="#ecedf0" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
       </svg></div>
       <div class="who ca">${esc(s.host.name)}</div><div class="row">${cells('a')}</div>
       <div class="who cb">${esc(s.opponent.name)}</div><div class="row">${cells('b')}</div>
-      <div style="position:sticky;left:0;z-index:1;background:var(--panel)"></div><div class="nums">${nums}</div>
+      <div class="pin"></div><div class="nums">${nums}</div>
     </div></div>
-    <div class="tl-legend"><span>Line: score difference after each game</span><span><b style="background:var(--a)"></b>${esc(s.host.name)} win</span><span><b style="background:var(--b)"></b>${esc(s.opponent.name)} win</span><span>Dark frame: three crowns</span><span>Gap: new bans</span></div>
+    <div class="tl-legend"><span>${T.legendLine}</span><span><b style="background:var(--a)"></b>${T.win(esc(s.host.name))}</span><span><b style="background:var(--b)"></b>${T.win(esc(s.opponent.name))}</span><span>${T.legendThree}</span><span>${T.legendGap}</span></div>
   </section>`;
 }
 
@@ -366,20 +506,20 @@ function veto(p, a) {
     const who = side === 'host' ? A : B, card = side === 'host' ? ph.banA : ph.banB;
     if (modToken) {
       return `<form class="banedit" data-from="${ph.from}" data-side="${side}"><span style="min-width:64px">${who}</span>
-        <input list="bo99-cards" value="${esc(card || '')}" placeholder="Card" aria-label="Card banned by ${who}">
-        <button type="submit">Save</button><span class="err" hidden></span></form>`;
+        <input list="bo99-cards" value="${esc(card || '')}" placeholder="${T.cardPh}" aria-label="${esc(T.bannedBy(s[side === 'host' ? 'host' : 'opponent'].name))}">
+        <button type="submit">${T.save}</button><span class="err" hidden></span></form>`;
     }
-    if (!card) return `<div class="ban">${who}: ${ph.upcoming ? 'not set yet' : 'no ban entered'}</div>`;
-    return `<div class="ban"><span class="x">${cardImg(card, 0)}</span><span>${who} banned <b>${esc(card)}</b></span></div>`;
+    if (!card) return `<div class="ban">${ph.upcoming ? T.notSet(who) : T.noBan(who)}</div>`;
+    return `<div class="ban"><span class="x">${cardImg(card, 0)}</span><span>${T.banned(who, esc(card))}</span></div>`;
   };
   return `<section class="panel">
-    <h2>Bans <span>every ${s.banEvery} games, for both players</span></h2>
+    <h2>${T.bans} <span>${T.bansSub(s.banEvery)}</span></h2>
     <ul class="veto">${a.phases.map((ph) => `<li>
-      <div class="rng${ph.from === current ? ' now' : ''}">Games ${ph.from}&ndash;${ph.to}</div>
+      <div class="rng${ph.from === current ? ' now' : ''}">${T.games(ph.from, ph.to)}</div>
       <div class="who">${line(ph, 'host')}${line(ph, 'opponent')}</div>
-      <div class="rec">${ph.played ? `<span class="ca">${ph.wins[0]}</span>&ndash;<span class="cb">${ph.wins[1]}</span>` : '&ndash;'}<small>${ph.played ? `${ph.played} played` : 'next'}</small></div>
+      <div class="rec">${ph.played ? `<span class="ca">${ph.wins[0]}</span>&ndash;<span class="cb">${ph.wins[1]}</span>` : '&ndash;'}<small>${ph.played ? T.played(ph.played) : T.upNext}</small></div>
     </li>`).join('')}</ul>
-    ${modToken ? '<div class="foot">Mod mode: type a card, save. Clear the field and save to remove a ban.</div>' : ''}
+    ${modToken ? `<div class="foot">${T.modHint}</div>` : ''}
   </section>`;
 }
 
@@ -394,32 +534,32 @@ function comparison(p, a) {
   };
   const hp = (v) => (v === null ? '&ndash;' : `${v} HP`);
   return `<section class="panel">
-    <h2>Head to head <span><span class="ca">${esc(s.host.name)}</span> &middot; <span class="cb">${esc(s.opponent.name)}</span></span></h2>
+    <h2>${T.h2h} <span><span class="ca">${esc(s.host.name)}</span> &middot; <span class="cb">${esc(s.opponent.name)}</span></span></h2>
     <ul class="cmp">
-      ${row('Wins', A.wins, B.wins)}
-      ${row('Three-crown wins', A.three, B.three)}
-      ${row('Wins by one crown', A.oneNil, B.oneNil)}
-      ${row('Longest win streak', A.best, B.best)}
-      ${row('Tower damage per game', A.damage, B.damage, (v) => Math.round(v).toLocaleString('en-US'))}
-      ${row('Elixir leaked per game', A.leaked, B.leaked, (v) => v.toFixed(1), true)}
-      ${row('Different decks', A.decks, B.decks)}
-      <li><div class="l"><span>${hp(A.closest)}</span><span>Closest win, lowest tower left</span><span>${hp(B.closest)}</span></div></li>
+      ${row(T.stats.wins, A.wins, B.wins)}
+      ${row(T.stats.three, A.three, B.three)}
+      ${row(T.stats.oneNil, A.oneNil, B.oneNil)}
+      ${row(T.stats.best, A.best, B.best)}
+      ${row(T.stats.damage, A.damage, B.damage, (v) => num(v))}
+      ${row(T.stats.leaked, A.leaked, B.leaked, (v) => num(v, 1), true)}
+      ${row(T.stats.decks, A.decks, B.decks)}
+      <li><div class="l"><span>${hp(A.closest)}</span><span>${T.stats.closest}</span><span>${hp(B.closest)}</span></div></li>
     </ul>
-    <div class="foot">Lead changed hands ${a.leadChanges} time${a.leadChanges === 1 ? '' : 's'}.</div>
+    <div class="foot">${T.leadChanges(a.leadChanges)}</div>
   </section>`;
 }
 
 function gameRow(p, g, fresh) {
-  const s = p.session, A = esc(s.host.name), B = esc(s.opponent.name);
+  const s = p.session;
   const tags = [];
-  if (Math.max(g.a.crowns, g.b.crowns) === 3) tags.push(`<span class="tagx hot">Three crowns</span>`);
-  if (g.low !== null && g.low < 300) tags.push(`<span class="tagx hot">Won on ${g.low} HP</span>`);
-  if (g.deckA === g.deckB) tags.push('<span class="tagx">Mirror</span>');
+  if (g.three) tags.push(`<span class="tagx hot">${T.tagThree}</span>`);
+  if (g.low !== null && g.low < 300) tags.push(`<span class="tagx hot">${T.tagHp(g.low)}</span>`);
+  if (g.deckA === g.deckB) tags.push(`<span class="tagx">${T.tagMirror}</span>`);
   return `<div class="game${fresh ? ' fresh' : ''}">
     <div class="no">${g.n}<small>${time(g.t)}</small></div>
-    ${deck8(g.a.cards, `da${g.w === 'a' ? '' : ' lose'}`, A)}
+    ${deck8(g.a.cards, `da${g.w === 'a' ? '' : ' lose'}`, s.host.name)}
     <div class="res"><div class="s"><span class="${g.w === 'a' ? 'w a' : ''}">${g.a.crowns}</span><span>&ndash;</span><span class="${g.w === 'b' ? 'w b' : ''}">${g.b.crowns}</span></div></div>
-    ${deck8(g.b.cards, `db${g.w === 'b' ? '' : ' lose'}`, B)}
+    ${deck8(g.b.cards, `db${g.w === 'b' ? '' : ' lose'}`, s.opponent.name)}
     ${tags.length ? `<div class="tags">${tags.join('')}</div>` : ''}
   </div>`;
 }
@@ -434,15 +574,15 @@ function feed(p, a, limit, withFilter) {
     html += gameRow(p, g, g.n > seenGames && seenGames > 0);
     const ph = a.phases.find((x) => x.from === g.n && x.from > 1);
     if (ph && gameFilter === 'all') {
-      const list = [ph.banA && `${s.host.name}: ${ph.banA}`, ph.banB && `${s.opponent.name}: ${ph.banB}`].filter(Boolean).join(' · ');
-      html += `<div class="phasebar">Games ${ph.from}&ndash;${ph.to} &middot; ${esc(list ? `bans ${list}` : 'no bans entered yet')}</div>`;
+      const bans = [ph.banA && `${s.host.name}: ${ph.banA}`, ph.banB && `${s.opponent.name}: ${ph.banB}`].filter(Boolean).join(' · ');
+      html += `<div class="phasebar">${T.phase(ph.from, ph.to)} &middot; ${esc(bans ? T.phaseBans(bans) : T.phaseNone)}</div>`;
     }
   });
-  const filter = withFilter ? `<span>${[['all', 'All'], ['a', s.host.name], ['b', s.opponent.name]].map(([k, l]) => `<button class="btn" data-filter="${k}" aria-pressed="${gameFilter === k}" style="${gameFilter === k ? 'border-color:var(--mute)' : ''}">${esc(l)}</button>`).join(' ')}</span>` : `<span>newest first</span>`;
+  const filter = withFilter ? `<span>${[['all', T.all], ['a', s.host.name], ['b', s.opponent.name]].map(([k, l]) => `<button class="btn" data-filter="${k}" aria-pressed="${gameFilter === k}">${esc(l)}</button>`).join(' ')}</span>` : `<span>${T.newest}</span>`;
   return `<section class="panel">
-    <h2>${withFilter ? 'Every game' : 'Latest games'} ${filter}</h2>
-    <div class="feed">${html || '<p class="empty">The first game shows up here about a minute after it ends.</p>'}</div>
-    ${limit && a.n > limit ? '<button class="btn more" data-tab="games">All games</button>' : ''}
+    <h2>${withFilter ? T.everyGame : T.latest} ${filter}</h2>
+    <div class="feed">${html || `<p class="empty">${T.firstGame}</p>`}</div>
+    ${limit && a.n > limit ? `<button class="btn more" data-tab="games">${T.allGames}</button>` : ''}
   </section>`;
 }
 
@@ -450,32 +590,125 @@ function deckTable(p, a) {
   const s = p.session;
   const rows = (allDecks ? a.decks : a.decks.slice(0, 15)).map((d) => {
     const rec = (r) => (r[0] + r[1] ? `${r[0]}&ndash;${r[1]}` : '<span class="na">&ndash;</span>');
-    const w = d.a[0] + d.b[0], l = d.a[1] + d.b[1];
-    return `<tr><td>${deck8(d.cards)}</td><td>${d.games}</td><td class="ca">${rec(d.a)}</td><td class="cb">${rec(d.b)}</td><td>${pct(w, l)}%</td></tr>`;
+    return `<tr><td>${deck8(d.cards)}</td><td>${d.games}</td><td class="ca">${rec(d.a)}</td><td class="cb">${rec(d.b)}</td><td>${pct(d.a[0] + d.b[0], d.a[1] + d.b[1])}%</td></tr>`;
   }).join('');
   return `<section class="panel">
-    <h2>Decks <span>${a.decks.length} different decks, most played first</span></h2>
-    <div class="tablewrap"><table class="dtable"><thead><tr><th>Deck</th><th>Games</th><th class="ca">${esc(s.host.name)}</th><th class="cb">${esc(s.opponent.name)}</th><th>Win rate</th></tr></thead><tbody>${rows}</tbody></table></div>
-    ${a.decks.length > 15 ? `<button class="btn more" data-more="decks">${allDecks ? 'Show fewer' : `Show all ${a.decks.length}`}</button>` : ''}
+    <h2>${T.tabs.decks} <span>${T.decksSub(a.decks.length)}</span></h2>
+    <div class="tablewrap"><table class="dtable"><thead><tr><th>${T.colDeck}</th><th>${T.colGames}</th><th class="ca">${esc(s.host.name)}</th><th class="cb">${esc(s.opponent.name)}</th><th>${T.colRate}</th></tr></thead><tbody>${rows}</tbody></table></div>
+    ${a.decks.length > 15 ? `<button class="btn more" data-more="decks">${allDecks ? T.showLess : T.showAll(a.decks.length)}</button>` : ''}
   </section>`;
+}
+
+// ---------- recap artboard ----------
+const FORMATS = { stream: { w: 1920, h: 1080 }, social: { w: 1080, h: 1350 } };
+function artboard(p, a, fmt) {
+  const s = p.session, { w, h } = FORMATS[fmt], wide = fmt === 'stream';
+  const pad = wide ? 72 : 56;
+  const winner = a.wins[0] >= s.target ? 'a' : a.wins[1] >= s.target ? 'b' : null;
+  const done = s.status === 'finished' || winner;
+  const lead = winner || (a.wins[0] === a.wins[1] ? null : a.wins[0] > a.wins[1] ? 'a' : 'b');
+  const nameOf = (k) => esc(k === 'a' ? s.host.name : s.opponent.name);
+  const verdict = done && lead ? `<div class="r-verdict">${T.winsSeries(`<b style="color:${lead === 'a' ? '#4b9bff' : '#ff5468'}">${nameOf(lead)}</b>`)}</div>` : '';
+
+  // timeline rows
+  const N = Math.max(a.n, 1), tlW = w - pad * 2 - (wide ? 150 : 120);
+  const cellW = Math.max(4, Math.floor((tlW - (N - 1) * 3) / N));
+  const cut = new Set(a.phases.filter((ph) => ph.from > 1 && !ph.upcoming).map((ph) => ph.from));
+  const rowCells = (k) => a.games.map((g) => `<i class="${g.w === k ? k : ''}${cut.has(g.n) ? ' cut' : ''}" style="width:${cellW}px;height:${wide ? 30 : 26}px"></i>`).join('');
+  const tl = `<div class="r-tl"><div class="r-label">${T.timeline}</div>
+    <div style="display:grid;grid-template-columns:${wide ? 150 : 120}px auto;row-gap:6px;align-items:center">
+      <div class="who" style="color:#4b9bff">${nameOf('a')}</div><div class="row" style="grid-template-columns:repeat(${N},${cellW}px)">${rowCells('a')}</div>
+      <div class="who" style="color:#ff5468">${nameOf('b')}</div><div class="row" style="grid-template-columns:repeat(${N},${cellW}px)">${rowCells('b')}</div>
+    </div></div>`;
+
+  const banList = `<div><div class="r-label">${T.bans}</div>${a.phases.filter((ph) => !ph.upcoming || ph.banA || ph.banB).map((ph) => `
+    <div class="r-ban"><div class="rng">${T.games(ph.from, ph.to)}</div>
+      <div class="cards">${[ph.banA, ph.banB].some(Boolean) ? [ph.banA, ph.banB].map((c, i) => (c ? `<span class="x" style="--c:${i ? '#ff5468' : '#4b9bff'}">${corsImg(c, 0)}</span>` : '')).join('') : `<span class="none">${T.rNoBan}</span>`}</div>
+      <div class="rec">${ph.played ? `<span style="color:#4b9bff">${ph.wins[0]}</span><span style="color:#5b606a">–</span><span style="color:#ff5468">${ph.wins[1]}</span>` : '–'}</div></div>`).join('')}</div>`;
+
+  const c = a.clutch;
+  const stats = `<div><div class="r-label">${T.rStats}</div><div class="r-stats">
+    <div class="r-stat"><div class="v">${c ? c.low : '–'}<small>HP</small></div><div class="k">${T.rClosest}${c ? ` · <b style="color:${c.w === 'a' ? '#4b9bff' : '#ff5468'}">${nameOf(c.w)}</b>` : ''}</div></div>
+    <div class="r-stat"><div class="v"><span style="color:#4b9bff">${a.A.best}</span><small>/</small> <span style="color:#ff5468">${a.B.best}</span></div><div class="k">${T.rStreak}</div></div>
+    <div class="r-stat"><div class="v">${a.leadChanges}</div><div class="k">${T.rChanges}</div></div>
+    <div class="r-stat"><div class="v"><span style="color:#4b9bff">${a.A.three}</span><small>/</small> <span style="color:#ff5468">${a.B.three}</span></div><div class="k">${T.rThree}</div></div>
+  </div></div>`;
+
+  const deckBlock = (k) => {
+    const d = (k === 'a' ? a.A : a.B).bestDeck;
+    if (!d) return '';
+    const r = d[k];
+    return `<div class="r-deck"><div class="who"><span style="font:700 24px Clash,sans-serif;color:${k === 'a' ? '#4b9bff' : '#ff5468'}">${nameOf(k)}</span><span>${T.rRecord(r[0], r[1])}</span></div>
+      <div class="cards">${d.cards.map(([n, l]) => corsImg(n, l)).join('')}</div></div>`;
+  };
+  const decks = `<div><div class="r-label">${T.rBestDeck}</div>${deckBlock('a')}${deckBlock('b')}</div>`;
+
+  const top = `<div class="r-top"><span>Best of ${s.target * 2 - 1} &middot; ${T.showmatch} &middot; ${day(s.startedAt)}</span><b>${done ? T.rFinal : `${T.live} &middot; ${T.rAfter(a.n)}`}</b></div>`;
+  const score = `<div class="r-score"><div class="r-name" style="color:#4b9bff">${nameOf('a')}</div><div class="r-num">${a.wins[0]}<span>:</span>${a.wins[1]}</div><div class="r-name b" style="color:#ff5468">${nameOf('b')}</div></div>`;
+  const foot = `<div class="r-foot"><span>${T.rData}</span><span>tojacob03.github.io/bo99</span></div>`;
+
+  const body = wide
+    ? `${top}${score}${verdict}${tl}<div class="r-cols" style="grid-template-columns:1fr 1.15fr 1.25fr">${banList}${stats}${decks}</div>${foot}`
+    : `${top}<div class="r-score" style="grid-template-columns:1fr auto 1fr;gap:20px"><div class="r-name" style="color:#4b9bff;font-size:46px">${nameOf('a')}</div><div class="r-num" style="font-size:140px">${a.wins[0]}<span>:</span>${a.wins[1]}</div><div class="r-name b" style="color:#ff5468;font-size:46px">${nameOf('b')}</div></div>${verdict}${tl}<div class="r-cols" style="grid-template-columns:1fr 1fr">${stats}${banList}</div><div class="r-social-decks">${decks}</div>${foot}`;
+  return `<div class="art${wide ? '' : ' social'}" id="art" style="width:${w}px;height:${h}px;padding:${pad}px;gap:${wide ? 34 : 26}px">${body}</div>`;
+}
+
+function recapPanel(p, a) {
+  const { w, h } = FORMATS[recapFormat];
+  return `<section class="panel">
+    <h2>${T.recap} <span>${w} × ${h}</span></h2>
+    <div class="rc-tools">
+      ${[['stream', T.fmtStream], ['social', T.fmtSocial]].map(([k, l]) => `<button class="btn" data-format="${k}" aria-pressed="${recapFormat === k}">${l}</button>`).join('')}
+      <button class="btn primary" id="dl">${T.download}</button>
+      <span class="hint" id="dlmsg">${T.recapHint}</span>
+    </div>
+    <div class="rc-stage"><div class="rc-fit" id="rcfit">${artboard(p, a, recapFormat)}</div></div>
+  </section>`;
+}
+function fitRecap() {
+  const fit = document.getElementById('rcfit'), art = document.getElementById('art');
+  if (!fit || !art) return;
+  const { w, h } = FORMATS[recapFormat];
+  const maxW = fit.parentElement.clientWidth - 32;
+  const scale = Math.min(1, maxW / w, (recapFormat === 'social' ? 720 : 9999) / h);
+  fit.style.width = `${w * scale}px`; fit.style.height = `${h * scale}px`;
+  art.style.transform = `scale(${scale})`;
+}
+addEventListener('resize', fitRecap);
+
+async function downloadRecap() {
+  const art = document.getElementById('art'), btn = document.getElementById('dl'), msg = document.getElementById('dlmsg');
+  if (!art || !window.htmlToImage) return;
+  btn.disabled = true; msg.textContent = T.making;
+  try {
+    await document.fonts.ready;
+    await Promise.all([...art.querySelectorAll('img')].map((img) => (img.complete ? null : new Promise((r) => { img.onload = img.onerror = r; }))));
+    const { w, h } = FORMATS[recapFormat];
+    const url = await window.htmlToImage.toPng(art, { width: w, height: h, pixelRatio: 1, cacheBust: false, style: { transform: 'none' }, includeQueryParams: true, imagePlaceholder: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==' });
+    const link = Object.assign(document.createElement('a'), { href: url, download: `bo99-${slug}-${recapFormat}.png` });
+    document.body.appendChild(link); link.click(); link.remove();
+    msg.textContent = T.recapHint;
+  } catch (e) {
+    console.error(e);
+    msg.textContent = T.failed;
+  }
+  btn.disabled = false;
 }
 
 function render() {
   const p = payload, a = analyse(p);
   ICONS = p.icons || {};
   document.title = `${p.session.host.name} ${a.wins[0]}:${a.wins[1]} ${p.session.opponent.name} · Best of ${p.session.target * 2 - 1}`;
-  if (!['overview', 'games', 'decks'].includes(tab)) tab = 'overview';
+  if (!['overview', 'games', 'decks', 'recap'].includes(tab)) tab = 'overview';
   let body = '';
-  if (tab === 'overview') {
-    body = `${timeline(p, a)}<div class="cols" style="margin-top:16px">${veto(p, a)}${comparison(p, a)}</div><div style="margin-top:16px">${feed(p, a, 6, false)}</div>`;
-  } else if (tab === 'games') {
-    body = feed(p, a, 0, true);
-  } else {
-    body = deckTable(p, a);
-  }
-  app.innerHTML = `${header(p, a)}${body}<footer>Results from the in-game battle log, refreshed automatically while the series is live. Bans are entered by the mods. Unofficial fan page.</footer>`;
+  if (tab === 'overview') body = `${timeline(p, a)}<div class="cols" style="margin-top:16px">${veto(p, a)}${comparison(p, a)}</div><div style="margin-top:16px">${feed(p, a, 6, false)}</div>`;
+  else if (tab === 'games') body = feed(p, a, 0, true);
+  else if (tab === 'decks') body = deckTable(p, a);
+  else body = recapPanel(p, a);
+  app.innerHTML = `${header(p, a)}${body}<footer>${T.footer}</footer>`;
   const sc = document.getElementById('tlscroll');
   if (sc) sc.scrollLeft = sc.scrollWidth;
+  fitRecap();
   seenGames = a.n;
   updateAgo();
 }
@@ -485,15 +718,18 @@ function updateAgo() {
   if (!el || !payload) return;
   if (payload.session.status !== 'live') { el.textContent = ''; return; }
   const secs = Math.max(0, Math.round((Date.now() - lastFetch) / 1000));
-  el.textContent = ` · updated ${secs < 5 ? 'just now' : `${secs}s ago`}`;
+  el.textContent = ` · ${secs < 5 ? T.justNow : T.ago(secs)}`;
 }
 
 app.addEventListener('click', (e) => {
-  const t = e.target.closest('[data-tab],[data-filter],[data-more]');
+  const t = e.target.closest('[data-tab],[data-filter],[data-more],[data-lang],[data-format],#dl');
   if (!t) return;
+  if (t.id === 'dl') return downloadRecap();
+  if (t.dataset.lang) return setLang(t.dataset.lang);
   if (t.dataset.tab) { tab = t.dataset.tab; history.replaceState(null, '', `${location.pathname}${location.search}#${tab}`); window.scrollTo({ top: 0 }); }
   if (t.dataset.filter) gameFilter = t.dataset.filter;
   if (t.dataset.more) allDecks = !allDecks;
+  if (t.dataset.format) recapFormat = t.dataset.format;
   render();
 });
 
@@ -503,20 +739,20 @@ app.addEventListener('submit', async (e) => {
   e.preventDefault();
   const input = form.querySelector('input'), err = form.querySelector('.err'), btn = form.querySelector('button');
   const card = input.value.trim();
-  if (card && !(card in (window.BO99_CARDS || {}))) { err.textContent = 'Pick a card from the list'; err.hidden = false; return; }
-  btn.disabled = true; btn.textContent = 'Saving'; err.hidden = true;
+  if (card && !keyOf(card)) { err.textContent = T.pickCard; err.hidden = false; return; }
+  btn.disabled = true; btn.textContent = T.saving; err.hidden = true;
   try {
     payload = await call({ action: 'ban_set', slug, modToken, fromGame: Number(form.dataset.from), side: form.dataset.side, card: card || null });
     lastFetch = Date.now();
     render();
   } catch (x) {
-    btn.disabled = false; btn.textContent = 'Save';
-    err.textContent = x.status === 403 ? 'Mod link no longer valid' : 'Could not save, try again'; err.hidden = false;
+    btn.disabled = false; btn.textContent = T.save;
+    err.textContent = x.status === 403 ? T.badLink : T.saveFail; err.hidden = false;
   }
 });
 
 async function loadSeries(first) {
-  // never wipe a ban a mod is typing
+  // never wipe a ban a mod is typing, and keep the recap still while it exports
   if (!first && document.activeElement && document.activeElement.closest('form.banedit')) return schedule();
   try {
     const next = await call({ action: 'session', slug });
@@ -525,7 +761,7 @@ async function loadSeries(first) {
     payload = next;
     if (changed) render(); else updateAgo();
   } catch (x) {
-    if (first) app.innerHTML = `<p class="empty">${x.status === 404 ? 'This series does not exist.' : 'The series could not be loaded. Try again in a moment.'} <a class="ca" href="./">All series</a></p>`;
+    if (first) app.innerHTML = `<div class="crumbs"><a href="./">${T.allSeries}</a>${langSwitch()}</div><p class="empty">${x.status === 404 ? T.notFound : T.loadFail}</p>`;
   }
   schedule();
 }
@@ -552,24 +788,25 @@ async function startSeries() {
       }
     } catch (_) { /* not a mod */ }
   }
-  tick = setInterval(updateAgo, 1000);
+  setInterval(updateAgo, 1000);
   loadSeries(true);
 }
 
+let archive = null;
 async function startArchive() {
   document.title = 'Best of 99';
   try {
-    const { sessions } = await call({ action: 'sessions' });
-    app.innerHTML = `<div class="crumbs"><span>Best of 99 &middot; all series</span></div>
-      <section class="panel"><h2>Series <span>newest first</span></h2>
-      ${sessions.length ? '' : '<p class="empty">No series yet. A new one appears here as soon as the first game is played.</p>'}
-      <div class="list">${sessions.map((s) => `<a href="?s=${encodeURIComponent(s.slug)}">
+    archive = archive || (await call({ action: 'sessions' })).sessions;
+    app.innerHTML = `<div class="crumbs"><span>Best of 99 &middot; ${T.allSeries}</span>${langSwitch()}</div>
+      <section class="panel"><h2>${T.allSeries} <span>${T.newest}</span></h2>
+      ${archive.length ? '' : `<p class="empty">${T.noSeries}</p>`}
+      <div class="list">${archive.map((s) => `<a href="?s=${encodeURIComponent(s.slug)}">
         <div><div class="t"><span class="ca">${esc(s.host_name)}</span> vs <span class="cb">${esc(s.opponent_name)}</span></div>
-        <small>${day(s.started_at)} &middot; from ${time(s.started_at)}</small></div>
-        <span class="live${s.status === 'live' ? '' : ' final'}"><i></i>${s.status === 'live' ? 'Live' : 'Final'}</span></a>`).join('')}</div></section>
-      <footer>Unofficial fan page.</footer>`;
+        <small>${day(s.started_at)} &middot; ${T.fromTime(time(s.started_at))}</small></div>
+        <span class="live${s.status === 'live' ? '' : ' final'}"><i></i>${s.status === 'live' ? T.live : T.final}</span></a>`).join('')}</div></section>
+      <footer>${T.footer}</footer>`;
   } catch (_) {
-    app.innerHTML = '<p class="empty">The series could not be loaded. Try again in a moment.</p>';
+    app.innerHTML = `<p class="empty">${T.loadFail}</p>`;
   }
 }
 
